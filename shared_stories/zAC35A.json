@@ -1,0 +1,25 @@
+{
+  "id": "zAC35A",
+  "createdAt": 1791671391568,
+  "expiresAt": 1794263391568,
+  "story": {
+    "title_target": "Il Gusto del Caffè",
+    "title_en": "The Taste of Coffee",
+    "contentType": "story",
+    "_meta": {
+      "targetLang": "Italian",
+      "baseLang": "English",
+      "difficulty": "Beginner"
+    },
+    "sentences": [
+      {
+        "target": "Il barista prepara un caffè.",
+        "en": "The barista prepares a coffee."
+      },
+      {
+        "target": "Il profumo è delizioso.",
+        "en": "The aroma is delicious."
+      }
+    ]
+  }
+}

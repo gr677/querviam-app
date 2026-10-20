@@ -1,0 +1,166 @@
+{
+  "title_target": "En morgentur i Oslo",
+  "title_en": "A Morning Walk in Oslo",
+  "contentType": "story",
+  "_meta": {
+    "prompt": "A morning walk along the harbor in Oslo",
+    "targetLang": "Norwegian",
+    "difficulty": "Intermediate (B1-B2)",
+    "tense": "Natural / Mixed Tenses",
+    "length": "5",
+    "contentType": "story",
+    "isFact": true
+  },
+  "sentences": [
+    {
+      "target": "Solen står opp over Oslofjorden og bader operahuset i et gyllent lys.",
+      "en": "The sun rises over the Oslo fjord and bathes the opera house in a golden light.",
+      "verbs": [
+        {
+          "infinitive": "stå",
+          "translation": "to stand/rise",
+          "conjugations": {
+            "present": [
+              {
+                "person": "den/det",
+                "form": "står"
+              }
+            ],
+            "past": [
+              {
+                "person": "den/det",
+                "form": "sto"
+              }
+            ]
+          }
+        },
+        {
+          "infinitive": "bade",
+          "translation": "to bathe",
+          "conjugations": {
+            "present": [
+              {
+                "person": "den/det",
+                "form": "bader"
+              }
+            ],
+            "past": [
+              {
+                "person": "den/det",
+                "form": "badet"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "Mennesker spaserer langs havnefronten med en varm kopp kaffe i hånden.",
+      "en": "People stroll along the waterfront with a warm cup of coffee in hand.",
+      "verbs": [
+        {
+          "infinitive": "spasere",
+          "translation": "to stroll",
+          "conjugations": {
+            "present": [
+              {
+                "person": "de",
+                "form": "spaserer"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "Luften er frisk, og måkene flyr sakte over det blikkstille vannet.",
+      "en": "The air is crisp, and the seagulls fly slowly over the calm water.",
+      "verbs": [
+        {
+          "infinitive": "være",
+          "translation": "to be",
+          "conjugations": {
+            "present": [
+              {
+                "person": "den/det",
+                "form": "er"
+              }
+            ],
+            "past": [
+              {
+                "person": "den/det",
+                "form": "var"
+              }
+            ]
+          }
+        },
+        {
+          "infinitive": "fly",
+          "translation": "to fly",
+          "conjugations": {
+            "present": [
+              {
+                "person": "de",
+                "form": "flyr"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "I det fjerne kan man høre båtene som forbereder seg på dagens seilas.",
+      "en": "In the distance one can hear the boats preparing for the day's voyage.",
+      "verbs": [
+        {
+          "infinitive": "høre",
+          "translation": "to hear",
+          "conjugations": {
+            "present": [
+              {
+                "person": "man",
+                "form": "hører"
+              }
+            ]
+          }
+        },
+        {
+          "infinitive": "forberede",
+          "translation": "to prepare",
+          "conjugations": {
+            "present": [
+              {
+                "person": "de",
+                "form": "forbereder"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "En rolig morgen i byen gir ny energi til hele uken.",
+      "en": "A quiet morning in the city provides fresh energy for the entire week.",
+      "verbs": [
+        {
+          "infinitive": "gi",
+          "translation": "to give/provide",
+          "conjugations": {
+            "present": [
+              {
+                "person": "den/det",
+                "form": "gir"
+              }
+            ],
+            "past": [
+              {
+                "person": "den/det",
+                "form": "ga"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

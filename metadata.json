@@ -1,0 +1,6 @@
+{
+  "name": "Impara - Chromebook & Tablet Story Reader",
+  "description": "Installable Progressive Web App for Chromebooks and tablets with AI story generation, speech playback, audio recording, verb conjugations, cloze and scramble practice modes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

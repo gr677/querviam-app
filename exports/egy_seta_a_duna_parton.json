@@ -1,0 +1,116 @@
+{
+  "title_target": "Egy séta a Duna-parton Budapesten",
+  "title_en": "A Walk Along the Danube in Budapest",
+  "contentType": "story",
+  "_meta": {
+    "prompt": "A scenic afternoon walk along the Danube in Budapest",
+    "targetLang": "Hungarian",
+    "difficulty": "Intermediate (B1-B2)",
+    "tense": "Natural / Mixed Tenses",
+    "length": "6",
+    "contentType": "story",
+    "isFact": true
+  },
+  "sentences": [
+    {
+      "target": "Budapesten a Duna partján sétálva a város legszebb történelmi épületei tárulnak elénk.",
+      "en": "Walking along the banks of the Danube in Budapest, the city's most beautiful historical buildings unfold before us.",
+      "verbs": [
+        {
+          "infinitive": "tárul",
+          "translation": "to unfold / open up",
+          "contextForm": "tárulnak",
+          "moodAndTense": "Kijelentő mód jelen idő",
+          "personNumber": "3. személy többes szám",
+          "regularOrIrregular": "regular"
+        }
+      ]
+    },
+    {
+      "target": "A lenyűgöző Országház neogótikus tornyai fenségesen tükröződnek a mélykék folyó vizében.",
+      "en": "The neo-Gothic towers of the breathtaking Parliament building reflect majestically in the deep blue river waters.",
+      "verbs": [
+        {
+          "infinitive": "tükröződik",
+          "translation": "to be reflected",
+          "contextForm": "tükröződnek",
+          "moodAndTense": "Kijelentő mód jelen idő",
+          "personNumber": "3. személy többes szám",
+          "regularOrIrregular": "regular"
+        }
+      ]
+    },
+    {
+      "target": "A Széchenyi lánchíd méltóságteljes kőoroszlánjai több mint százötven éve őrzik az átkelőt.",
+      "en": "The dignified stone lions of the Széchenyi Chain Bridge have guarded the crossing for more than one hundred and fifty years.",
+      "verbs": [
+        {
+          "infinitive": "őriz",
+          "translation": "to guard / watch over",
+          "contextForm": "őrzik",
+          "moodAndTense": "Kijelentő mód jelen idő",
+          "personNumber": "3. személy többes szám (határozott)",
+          "regularOrIrregular": "regular"
+        }
+      ]
+    },
+    {
+      "target": "A budai dombok felől kellemes esti szellő érkezik, miközben a naplemente narancssárgára festi az eget.",
+      "en": "A pleasant evening breeze arrives from the Buda hills while the sunset paints the sky in shades of orange.",
+      "verbs": [
+        {
+          "infinitive": "érkezik",
+          "translation": "to arrive",
+          "contextForm": "érkezik",
+          "moodAndTense": "Kijelentő mód jelen idő",
+          "personNumber": "3. személy egyes szám",
+          "regularOrIrregular": "regular"
+        },
+        {
+          "infinitive": "fest",
+          "translation": "to paint",
+          "contextForm": "festi",
+          "moodAndTense": "Kijelentő mód jelen idő",
+          "personNumber": "3. személy egyes szám (határozott)",
+          "regularOrIrregular": "regular"
+        }
+      ]
+    },
+    {
+      "target": "A járókelők megállnak egy pillanatra, hogy élvezzék a Halászbástyáról nyíló páratlan panorámát.",
+      "en": "Passersby pause for a moment to enjoy the unparalleled panoramic view opening from the Fisherman's Bastion.",
+      "verbs": [
+        {
+          "infinitive": "megáll",
+          "translation": "to stop / pause",
+          "contextForm": "megállnak",
+          "moodAndTense": "Kijelentő mód jelen idő",
+          "personNumber": "3. személy többes szám",
+          "regularOrIrregular": "regular"
+        },
+        {
+          "infinitive": "élvez",
+          "translation": "to enjoy",
+          "contextForm": "élvezzék",
+          "moodAndTense": "Felszólító/kötőmód jelen idő",
+          "personNumber": "3. személy többes szám",
+          "regularOrIrregular": "regular"
+        }
+      ]
+    },
+    {
+      "target": "A kávézók teraszain friss kürtőskalács és meleg kávé illata száll a levegőben.",
+      "en": "On the terraces of the cafes, the aroma of fresh chimney cake and warm coffee drifts through the air.",
+      "verbs": [
+        {
+          "infinitive": "száll",
+          "translation": "to fly / float / drift",
+          "contextForm": "száll",
+          "moodAndTense": "Kijelentő mód jelen idő",
+          "personNumber": "3. személy egyes szám",
+          "regularOrIrregular": "regular"
+        }
+      ]
+    }
+  ]
+}

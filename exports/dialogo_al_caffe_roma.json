@@ -1,0 +1,153 @@
+{
+  "title_target": "Un caffè al centro di Roma",
+  "title_en": "A Coffee in Central Rome",
+  "contentType": "discussion",
+  "_meta": {
+    "prompt": "Ordering coffee and discussing morning plans in Rome",
+    "targetLang": "Italian",
+    "difficulty": "Beginner (A1-A2)",
+    "tense": "Present Tense",
+    "length": "6",
+    "contentType": "discussion",
+    "isFact": false
+  },
+  "sentences": [
+    {
+      "speaker": "A",
+      "target": "Buongiorno Marco! Vuoi prendere un espresso al banco con me?",
+      "en": "Good morning Marco! Do you want to have an espresso at the bar counter with me?",
+      "verbs": [
+        {
+          "infinitive": "volere",
+          "translation": "to want",
+          "conjugations": {
+            "present": [
+              {
+                "person": "io",
+                "form": "voglio"
+              },
+              {
+                "person": "tu",
+                "form": "vuoi"
+              },
+              {
+                "person": "lui/lei",
+                "form": "vuole"
+              }
+            ]
+          }
+        },
+        {
+          "infinitive": "prendere",
+          "translation": "to take/have",
+          "conjugations": {
+            "present": [
+              {
+                "person": "io",
+                "form": "prendo"
+              },
+              {
+                "person": "tu",
+                "form": "prendi"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "speaker": "B",
+      "target": "Volentieri Sofia! Per me un cappuccino e un cornetto alla crema, grazie.",
+      "en": "Gladly Sofia! For me a cappuccino and a cream croissant, thank you.",
+      "verbs": []
+    },
+    {
+      "speaker": "A",
+      "target": "Il barista qui prepara la migliore colazione del quartiere.",
+      "en": "The barista here prepares the best breakfast in the neighborhood.",
+      "verbs": [
+        {
+          "infinitive": "preparare",
+          "translation": "to prepare",
+          "conjugations": {
+            "present": [
+              {
+                "person": "lui/lei",
+                "form": "prepara"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "speaker": "B",
+      "target": "Hai ragione, il profumo dei dolci caldi è davvero irresistibile.",
+      "en": "You are right, the aroma of warm pastries is truly irresistible.",
+      "verbs": [
+        {
+          "infinitive": "avere",
+          "translation": "to have",
+          "conjugations": {
+            "present": [
+              {
+                "person": "tu",
+                "form": "hai"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "speaker": "A",
+      "target": "Cosa fai dopo aver finito? Andiamo a visitare la biblioteca comunale?",
+      "en": "What are you doing after finishing? Shall we go visit the municipal library?",
+      "verbs": [
+        {
+          "infinitive": "fare",
+          "translation": "to do/make",
+          "conjugations": {
+            "present": [
+              {
+                "person": "tu",
+                "form": "fai"
+              }
+            ]
+          }
+        },
+        {
+          "infinitive": "andare",
+          "translation": "to go",
+          "conjugations": {
+            "present": [
+              {
+                "person": "noi",
+                "form": "andiamo"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "speaker": "B",
+      "target": "Perfetto, è una bellissima idea per iniziare la mattinata!",
+      "en": "Perfect, that is a wonderful idea to start the morning!",
+      "verbs": [
+        {
+          "infinitive": "essere",
+          "translation": "to be",
+          "conjugations": {
+            "present": [
+              {
+                "person": "lui/lei",
+                "form": "è"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

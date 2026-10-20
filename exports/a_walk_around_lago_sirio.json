@@ -1,0 +1,220 @@
+{
+  "title_target": "Una passeggiata attorno al Lago Sirio",
+  "title_en": "A Walk Around Lake Sirio",
+  "contentType": "story",
+  "_meta": {
+    "prompt": "A walk around Lago Sirio in Ivrea, Italy",
+    "targetLang": "Italian",
+    "difficulty": "Intermediate (B1-B2)",
+    "tense": "Natural / Mixed Tenses",
+    "length": "6",
+    "contentType": "story",
+    "isFact": true
+  },
+  "sentences": [
+    {
+      "target": "Il Lago Sirio è uno splendido specchio d'acqua situato vicino a Ivrea, circondato da verdi colline.",
+      "en": "Lake Sirio is a wonderful mirror of water situated near Ivrea, surrounded by green hills.",
+      "verbs": [
+        {
+          "infinitive": "essere",
+          "translation": "to be",
+          "conjugations": {
+            "present": [
+              {
+                "person": "io",
+                "form": "sono"
+              },
+              {
+                "person": "tu",
+                "form": "sei"
+              },
+              {
+                "person": "lui/lei",
+                "form": "è"
+              },
+              {
+                "person": "noi",
+                "form": "siamo"
+              },
+              {
+                "person": "voi",
+                "form": "siete"
+              },
+              {
+                "person": "loro",
+                "form": "sono"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "Ogni mattina molte persone camminano lungo il sentiero per godersi la tranquillità della natura.",
+      "en": "Every morning many people walk along the path to enjoy the tranquility of nature.",
+      "verbs": [
+        {
+          "infinitive": "camminare",
+          "translation": "to walk",
+          "conjugations": {
+            "present": [
+              {
+                "person": "io",
+                "form": "cammino"
+              },
+              {
+                "person": "tu",
+                "form": "cammini"
+              },
+              {
+                "person": "lui/lei",
+                "form": "cammina"
+              },
+              {
+                "person": "noi",
+                "form": "camminiamo"
+              },
+              {
+                "person": "voi",
+                "form": "camminate"
+              },
+              {
+                "person": "loro",
+                "form": "camminano"
+              }
+            ]
+          }
+        },
+        {
+          "infinitive": "godersi",
+          "translation": "to enjoy oneself",
+          "conjugations": {
+            "present": [
+              {
+                "person": "io",
+                "form": "mi godo"
+              },
+              {
+                "person": "tu",
+                "form": "ti godi"
+              },
+              {
+                "person": "lui/lei",
+                "form": "si gode"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "Durante l'autunno, i riflessi dorati degli alberi rendono l'atmosfera magica e rilassante.",
+      "en": "During autumn, the golden reflections of the trees make the atmosphere magical and relaxing.",
+      "verbs": [
+        {
+          "infinitive": "rendere",
+          "translation": "to make/render",
+          "conjugations": {
+            "present": [
+              {
+                "person": "io",
+                "form": "rendo"
+              },
+              {
+                "person": "tu",
+                "form": "rendi"
+              },
+              {
+                "person": "lui/lei",
+                "form": "rende"
+              },
+              {
+                "person": "loro",
+                "form": "rendono"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "Ci fermiamo su una panchina di legno per ammirare le anatre che nuotano serenamente.",
+      "en": "We stop on a wooden bench to admire the ducks swimming serenely.",
+      "verbs": [
+        {
+          "infinitive": "fermarsi",
+          "translation": "to stop",
+          "conjugations": {
+            "present": [
+              {
+                "person": "noi",
+                "form": "ci fermiamo"
+              },
+              {
+                "person": "loro",
+                "form": "si fermano"
+              }
+            ]
+          }
+        },
+        {
+          "infinitive": "nuotare",
+          "translation": "to swim",
+          "conjugations": {
+            "present": [
+              {
+                "person": "loro",
+                "form": "nuotano"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "L'aria fresca di montagna rigenera la mente prima di iniziare una nuova giornata lavorativa.",
+      "en": "The crisp mountain air regenerates the mind before starting a new working day.",
+      "verbs": [
+        {
+          "infinitive": "rigenerare",
+          "translation": "to regenerate",
+          "conjugations": {
+            "present": [
+              {
+                "person": "lui/lei",
+                "form": "rigenera"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "Consiglio a tutti di visitare questo luogo incantevole almeno una volta nella vita.",
+      "en": "I advise everyone to visit this enchanting place at least once in their life.",
+      "verbs": [
+        {
+          "infinitive": "consigliare",
+          "translation": "to recommend/advise",
+          "conjugations": {
+            "present": [
+              {
+                "person": "io",
+                "form": "consiglio"
+              },
+              {
+                "person": "tu",
+                "form": "consigli"
+              },
+              {
+                "person": "noi",
+                "form": "consigliamo"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

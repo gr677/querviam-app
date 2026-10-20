@@ -1,0 +1,244 @@
+{
+  "title_target": "Ranní procházka po Karlově mostě v Praze",
+  "title_en": "A Morning Walk Across Charles Bridge in Prague",
+  "contentType": "story",
+  "_meta": {
+    "prompt": "A peaceful morning walk across Charles Bridge in Prague, Czech Republic",
+    "targetLang": "Czech",
+    "difficulty": "Intermediate (B1-B2)",
+    "tense": "Natural / Mixed Tenses",
+    "length": "6",
+    "contentType": "story",
+    "isFact": true
+  },
+  "sentences": [
+    {
+      "target": "Karlův most je historický kamenný most přes řeku Vltavu v samém srdci Prahy.",
+      "en": "Charles Bridge is a historic stone bridge over the Vltava river in the very heart of Prague.",
+      "verbs": [
+        {
+          "infinitive": "být",
+          "translation": "to be",
+          "conjugations": {
+            "present": [
+              {
+                "person": "já",
+                "form": "jsem"
+              },
+              {
+                "person": "ty",
+                "form": "jsi"
+              },
+              {
+                "person": "on/ona/ono",
+                "form": "je"
+              },
+              {
+                "person": "my",
+                "form": "jsme"
+              },
+              {
+                "person": "vy",
+                "form": "jste"
+              },
+              {
+                "person": "oni",
+                "form": "jsou"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "Brzy ráno zahaluje hladinu řeky lehká mlha a město se pomalu probouzí.",
+      "en": "Early in the morning, a light mist envelops the surface of the river and the city slowly awakens.",
+      "verbs": [
+        {
+          "infinitive": "probouzet se",
+          "translation": "to wake up / awaken",
+          "conjugations": {
+            "present": [
+              {
+                "person": "já",
+                "form": "probouzím se"
+              },
+              {
+                "person": "ty",
+                "form": "probouzíš se"
+              },
+              {
+                "person": "on/ona/ono",
+                "form": "probouzí se"
+              },
+              {
+                "person": "my",
+                "form": "probouzíme se"
+              },
+              {
+                "person": "vy",
+                "form": "probouzíte se"
+              },
+              {
+                "person": "oni",
+                "form": "probouzejí se"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "Podél mostu stojí třicet barokních soch svatých, které pozorují kolemjdoucí chodce.",
+      "en": "Along the bridge stand thirty baroque statues of saints that watch the passing pedestrians.",
+      "verbs": [
+        {
+          "infinitive": "stát",
+          "translation": "to stand",
+          "conjugations": {
+            "present": [
+              {
+                "person": "já",
+                "form": "stojím"
+              },
+              {
+                "person": "ty",
+                "form": "stojíš"
+              },
+              {
+                "person": "on/ona/ono",
+                "form": "stojí"
+              },
+              {
+                "person": "my",
+                "form": "stojíme"
+              },
+              {
+                "person": "vy",
+                "form": "stojíte"
+              },
+              {
+                "person": "oni",
+                "form": "stojí"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "Z mostu je nádherný výhled na Pražský hrad a starobylé střechy Malé Strany.",
+      "en": "From the bridge there is a magnificent view of Prague Castle and the ancient roofs of Malá Strana.",
+      "verbs": [
+        {
+          "infinitive": "vidět",
+          "translation": "to see",
+          "conjugations": {
+            "present": [
+              {
+                "person": "já",
+                "form": "vidím"
+              },
+              {
+                "person": "ty",
+                "form": "vidíš"
+              },
+              {
+                "person": "on/ona/ono",
+                "form": "vidí"
+              },
+              {
+                "person": "my",
+                "form": "vidíme"
+              },
+              {
+                "person": "vy",
+                "form": "vidíte"
+              },
+              {
+                "person": "oni",
+                "form": "vidí"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "Pouliční umělci a hudebníci si chystají své nástroje na další rušný den.",
+      "en": "Street artists and musicians prepare their instruments for another bustling day.",
+      "verbs": [
+        {
+          "infinitive": "chystat",
+          "translation": "to prepare / set up",
+          "conjugations": {
+            "present": [
+              {
+                "person": "já",
+                "form": "chystám"
+              },
+              {
+                "person": "ty",
+                "form": "chystáš"
+              },
+              {
+                "person": "on/ona/ono",
+                "form": "chystá"
+              },
+              {
+                "person": "my",
+                "form": "chystáme"
+              },
+              {
+                "person": "vy",
+                "form": "chystáte"
+              },
+              {
+                "person": "oni",
+                "form": "chystají"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "Každý krok po těchto starodávných kočičích hlavách dýchá staletou historií.",
+      "en": "Every step across these ancient cobblestones breathes centuries of history.",
+      "verbs": [
+        {
+          "infinitive": "dýchat",
+          "translation": "to breathe",
+          "conjugations": {
+            "present": [
+              {
+                "person": "já",
+                "form": "dýchám"
+              },
+              {
+                "person": "ty",
+                "form": "dýcháš"
+              },
+              {
+                "person": "on/ona/ono",
+                "form": "dýchá"
+              },
+              {
+                "person": "my",
+                "form": "dýcháme"
+              },
+              {
+                "person": "vy",
+                "form": "dýcháte"
+              },
+              {
+                "person": "oni",
+                "form": "dýchají"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

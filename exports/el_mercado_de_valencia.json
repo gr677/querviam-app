@@ -1,0 +1,130 @@
+{
+  "title_target": "Los colores del Mercado Central",
+  "title_en": "The Colors of the Central Market",
+  "contentType": "story",
+  "_meta": {
+    "prompt": "A vibrant morning at the Central Market of Valencia",
+    "targetLang": "Spanish",
+    "difficulty": "Intermediate (B1-B2)",
+    "tense": "Natural / Mixed Tenses",
+    "length": "5",
+    "contentType": "story",
+    "isFact": true
+  },
+  "sentences": [
+    {
+      "target": "El Mercado Central de Valencia es una joya arquitectónica llena de luz y productos frescos.",
+      "en": "The Central Market of Valencia is an architectural jewel full of light and fresh produce.",
+      "verbs": [
+        {
+          "infinitive": "ser",
+          "translation": "to be",
+          "conjugations": {
+            "present": [
+              {
+                "person": "yo",
+                "form": "soy"
+              },
+              {
+                "person": "tú",
+                "form": "eres"
+              },
+              {
+                "person": "él/ella",
+                "form": "es"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "Los agricultores locales exhiben naranjas brillantes y verduras cosechadas al amanecer.",
+      "en": "Local farmers display bright oranges and vegetables harvested at dawn.",
+      "verbs": [
+        {
+          "infinitive": "exhibir",
+          "translation": "to display",
+          "conjugations": {
+            "present": [
+              {
+                "person": "ellos",
+                "form": "exhiben"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "La gente conversa animadamente mientras elige los mejores ingredientes para el almuerzo.",
+      "en": "People talk animatedly while choosing the best ingredients for lunch.",
+      "verbs": [
+        {
+          "infinitive": "conversar",
+          "translation": "to converse",
+          "conjugations": {
+            "present": [
+              {
+                "person": "él/ella",
+                "form": "conversa"
+              }
+            ]
+          }
+        },
+        {
+          "infinitive": "elegir",
+          "translation": "to choose",
+          "conjugations": {
+            "present": [
+              {
+                "person": "él/ella",
+                "form": "elige"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "El olor a especias y pan recién horneado despierta el apetito de cualquiera.",
+      "en": "The smell of spices and freshly baked bread awakens anyone's appetite.",
+      "verbs": [
+        {
+          "infinitive": "despertar",
+          "translation": "to wake/awaken",
+          "conjugations": {
+            "present": [
+              {
+                "person": "él/ella",
+                "form": "despierta"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "Pasear por estos pasillos es descubrir la verdadera esencia de la cultura mediterránea.",
+      "en": "Strolling through these aisles is discovering the true essence of Mediterranean culture.",
+      "verbs": [
+        {
+          "infinitive": "descubrir",
+          "translation": "to discover",
+          "conjugations": {
+            "present": [
+              {
+                "person": "yo",
+                "form": "descubro"
+              },
+              {
+                "person": "nosotros",
+                "form": "descubrimos"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

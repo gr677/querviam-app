@@ -1,0 +1,191 @@
+{
+  "visitors": {
+    "qv_visitor_global_1": {
+      "firstSeen": 1792085482232,
+      "lastSeen": 1792517482232,
+      "totalEvents": 34,
+      "days": [
+        "2026-10-20"
+      ]
+    },
+    "qv_visitor_global_2": {
+      "firstSeen": 1792258282233,
+      "lastSeen": 1792517482233,
+      "totalEvents": 22,
+      "days": [
+        "2026-10-20"
+      ]
+    },
+    "qv_visitor_global_3": {
+      "firstSeen": 1792344682233,
+      "lastSeen": 1792517482233,
+      "totalEvents": 18,
+      "days": [
+        "2026-10-20"
+      ]
+    },
+    "qv_u0dxnu7_mv77tflt": {
+      "firstSeen": 1792517487773,
+      "lastSeen": 1792517542482,
+      "totalEvents": 4,
+      "days": [
+        "2026-10-20"
+      ]
+    }
+  },
+  "totals": {
+    "pageViews": 150,
+    "storiesGenerated": 146,
+    "storiesRead": 195,
+    "wordLookups": 578,
+    "digDeeperClicks": 84,
+    "audioPlays": 312,
+    "storiesShared": 23,
+    "savedToLibrary": 54,
+    "practiceSessions": 195,
+    "adImpressions": 502,
+    "estimatedTotalRevenueEur": 10.77
+  },
+  "dailyStats": {
+    "2026-10-20": {
+      "activeVisitors": [
+        "qv_u0dxnu7_mv77tflt"
+      ],
+      "pageViews": 4,
+      "storiesGenerated": 0,
+      "wordLookups": 0,
+      "digDeeperClicks": 0,
+      "audioPlays": 0,
+      "storiesShared": 0
+    }
+  },
+  "languages": {
+    "Italian": 50,
+    "Spanish": 35,
+    "French": 26,
+    "German": 19,
+    "Japanese": 16
+  },
+  "languagePairs": {
+    "Italian → English": {
+      "targetLang": "Italian",
+      "baseLang": "English",
+      "storiesGenerated": 42,
+      "practiceSessions": 58,
+      "wordLookups": 164,
+      "audioPlays": 89,
+      "adImpressions": 148,
+      "uniqueLearners": [
+        "qv_italy_1",
+        "qv_italy_2",
+        "qv_italy_3",
+        "qv_italy_4"
+      ],
+      "estimatedRevenueEur": 3.16
+    },
+    "Spanish → English": {
+      "targetLang": "Spanish",
+      "baseLang": "English",
+      "storiesGenerated": 35,
+      "practiceSessions": 46,
+      "wordLookups": 128,
+      "audioPlays": 72,
+      "adImpressions": 119,
+      "uniqueLearners": [
+        "qv_es_1",
+        "qv_es_2",
+        "qv_es_3"
+      ],
+      "estimatedRevenueEur": 2.56
+    },
+    "French → English": {
+      "targetLang": "French",
+      "baseLang": "English",
+      "storiesGenerated": 26,
+      "practiceSessions": 34,
+      "wordLookups": 98,
+      "audioPlays": 54,
+      "adImpressions": 88,
+      "uniqueLearners": [
+        "qv_fr_1",
+        "qv_fr_2"
+      ],
+      "estimatedRevenueEur": 1.89
+    },
+    "German → English": {
+      "targetLang": "German",
+      "baseLang": "English",
+      "storiesGenerated": 19,
+      "practiceSessions": 25,
+      "wordLookups": 74,
+      "audioPlays": 41,
+      "adImpressions": 65,
+      "uniqueLearners": [
+        "qv_de_1",
+        "qv_de_2"
+      ],
+      "estimatedRevenueEur": 1.4
+    },
+    "Japanese → English": {
+      "targetLang": "Japanese",
+      "baseLang": "English",
+      "storiesGenerated": 16,
+      "practiceSessions": 21,
+      "wordLookups": 82,
+      "audioPlays": 38,
+      "adImpressions": 54,
+      "uniqueLearners": [
+        "qv_ja_1",
+        "qv_ja_2"
+      ],
+      "estimatedRevenueEur": 1.16
+    },
+    "Italian → French": {
+      "targetLang": "Italian",
+      "baseLang": "French",
+      "storiesGenerated": 8,
+      "practiceSessions": 11,
+      "wordLookups": 32,
+      "audioPlays": 18,
+      "adImpressions": 28,
+      "uniqueLearners": [
+        "qv_eu_1"
+      ],
+      "estimatedRevenueEur": 0.6
+    }
+  },
+  "topWords": {
+    "camminare": 18,
+    "lago": 14,
+    "sole": 12,
+    "caffè": 11,
+    "amico": 9,
+    "viaggiare": 8
+  },
+  "recentEvents": [
+    {
+      "timestamp": 1792517542482,
+      "event": "page_view",
+      "details": {},
+      "visitorPreview": "qv_u0dxn"
+    },
+    {
+      "timestamp": 1792517542480,
+      "event": "page_view",
+      "details": {},
+      "visitorPreview": "qv_u0dxn"
+    },
+    {
+      "timestamp": 1792517487776,
+      "event": "page_view",
+      "details": {},
+      "visitorPreview": "qv_u0dxn"
+    },
+    {
+      "timestamp": 1792517487773,
+      "event": "page_view",
+      "details": {},
+      "visitorPreview": "qv_u0dxn"
+    }
+  ]
+}

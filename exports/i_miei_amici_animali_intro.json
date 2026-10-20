@@ -1,0 +1,102 @@
+{
+  "title_target": "I miei amici animali",
+  "title_en": "My Animal Friends",
+  "contentType": "story",
+  "_meta": {
+    "prompt": "Simple animals and colors for young kids",
+    "targetLang": "Italian",
+    "difficulty": "Introduction (Pre-A1 / Kids)",
+    "tense": "Present Tense",
+    "length": "5",
+    "contentType": "story",
+    "isFact": true
+  },
+  "sentences": [
+    {
+      "target": "Ciao! Io ho un cane felice.",
+      "en": "Hello! I have a happy dog.",
+      "verbs": [
+        {
+          "infinitive": "avere",
+          "translation": "to have",
+          "conjugations": {
+            "present": [
+              { "person": "io", "form": "ho" },
+              { "person": "tu", "form": "hai" },
+              { "person": "lui/lei", "form": "ha" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "Il cane è marrone e gioca.",
+      "en": "The dog is brown and plays.",
+      "verbs": [
+        {
+          "infinitive": "essere",
+          "translation": "to be",
+          "conjugations": {
+            "present": [
+              { "person": "lui/lei", "form": "è" }
+            ]
+          }
+        },
+        {
+          "infinitive": "giocare",
+          "translation": "to play",
+          "conjugations": {
+            "present": [
+              { "person": "lui/lei", "form": "gioca" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "Vedo un piccolo gatto bianco.",
+      "en": "I see a small white cat.",
+      "verbs": [
+        {
+          "infinitive": "vedere",
+          "translation": "to see",
+          "conjugations": {
+            "present": [
+              { "person": "io", "form": "vedo" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "Il gatto mangia una mela rossa.",
+      "en": "The cat eats a red apple.",
+      "verbs": [
+        {
+          "infinitive": "mangiare",
+          "translation": "to eat",
+          "conjugations": {
+            "present": [
+              { "person": "lui/lei", "form": "mangia" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "target": "Noi amiamo tutti gli animali.",
+      "en": "We love all the animals.",
+      "verbs": [
+        {
+          "infinitive": "amare",
+          "translation": "to love",
+          "conjugations": {
+            "present": [
+              { "person": "noi", "form": "amiamo" }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
