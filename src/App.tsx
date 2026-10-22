@@ -3181,17 +3181,6 @@ export default function App() {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2">
-            {/* Comic Guide Tour Button */}
-            <button
-              type="button"
-              onClick={() => handleOpenComicTour(sidebarTab)}
-              className="flex items-center gap-1.5 px-3 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 border-2 border-slate-950 text-xs font-black rounded-xl shadow-[2px_2px_0px_#0f172a] transition cursor-pointer active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
-              title="Open Interactive Comic Guide (Speech bubbles & section arrows)"
-            >
-              <span className="text-sm">💬</span>
-              <span className="hidden sm:inline">Guide</span>
-            </button>
-
             {/* Daily Streak & Progress Tracker */}
             <button
               onClick={() => setIsStatsOpen(true)}

@@ -216,7 +216,7 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
               <span className="text-xl">💥</span>
               <div>
                 <h3 className="font-black text-sm tracking-wider uppercase text-slate-950">
-                  Quick Comic Guide
+                  Quick Guide
                 </h3>
                 <p className="text-[10px] font-bold text-amber-950/80 uppercase">
                   How Querviam Works in 30 Seconds
