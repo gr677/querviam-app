@@ -76,7 +76,6 @@ import { AnalyticsModal } from './components/AnalyticsModal';
 import { ContextualMicroHint } from './components/ContextualMicroHint';
 import { StoryInspectorModal } from './components/StoryInspectorModal';
 import { ComicGuideTour } from './components/ComicGuideTour';
-import { JokesEasterEggModal } from './components/JokesEasterEggModal';
 import { logAnalyticsEvent } from './utils/analytics';
 import { resolveSharedStoryFromUrl, isShareLinkInUrl } from './utils/shareUtils';
 import { classifyWordGrammar, getGrammarBadgeLabel, getGrammarStyle } from './utils/grammarHighlighter';
@@ -661,7 +660,6 @@ export default function App() {
   const [isConversationOpen, setIsConversationOpen] = useState(false);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [isComicTourOpen, setIsComicTourOpen] = useState(false);
-  const [isJokesEasterEggOpen, setIsJokesEasterEggOpen] = useState(false);
 
   const handleCloseComicTour = () => {
     setIsComicTourOpen(false);
@@ -1051,13 +1049,6 @@ export default function App() {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'S' || e.key === 's')) {
         e.preventDefault();
         setIsAnalyticsOpen((prev) => !prev);
-        return;
-      }
-
-      // Secret Easter Egg Key combination: Ctrl+Shift+J or Cmd+Shift+J to toggle Jokes
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
-        e.preventDefault();
-        setIsJokesEasterEggOpen((prev) => !prev);
         return;
       }
 
@@ -2793,39 +2784,22 @@ export default function App() {
               {/* Story Topic Seed Input (Prominently visible in Build tab on both Desktop and Mobile) */}
               <div id="tour-build-topic" className="p-3 bg-white border-2 border-amber-400/90 rounded-2xl shadow-xs space-y-2 ring-2 ring-amber-100 relative">
                 <div className="flex items-center justify-between">
-                  <label
-                    onDoubleClick={() => setIsJokesEasterEggOpen(true)}
-                    className="font-extrabold text-[11px] text-amber-950 uppercase tracking-wider flex items-center gap-1.5 cursor-pointer select-none"
-                    title="Tip: Double-click or click 🎭 for 15 Topic One-Liner Jokes!"
-                  >
+                  <label className="font-extrabold text-[11px] text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
                     <span>💡 Story Topic / Idea</span>
                   </label>
-                  <div className="flex items-center gap-1.5">
-                    {/* Jokes Easter Egg Button */}
-                    <button
-                      type="button"
-                      onClick={() => setIsJokesEasterEggOpen(true)}
-                      className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-black transition cursor-pointer shadow-2xs active:scale-95 bg-amber-200 hover:bg-amber-300 text-amber-950 border border-amber-400"
-                      title="🎭 Easter Egg: 15 One-Liner Jokes on this topic!"
-                    >
-                      <span>🎭</span>
-                      <span className="text-[10px] font-bold">Jokes</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleToggleTopicVoiceInput}
-                      className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-bold transition cursor-pointer shadow-2xs active:scale-95 ${
-                        isListeningTopic
-                          ? 'bg-rose-500 text-white animate-pulse'
-                          : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300'
-                      }`}
-                      title={isListeningTopic ? 'Stop listening' : 'Speak to input topic idea'}
-                    >
-                      <Mic className="w-3.5 h-3.5" />
-                      <span>{isListeningTopic ? 'Listening...' : 'Speak'}</span>
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={handleToggleTopicVoiceInput}
+                    className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-bold transition cursor-pointer shadow-2xs active:scale-95 ${
+                      isListeningTopic
+                        ? 'bg-rose-500 text-white animate-pulse'
+                        : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300'
+                    }`}
+                    title={isListeningTopic ? 'Stop listening' : 'Speak to input topic idea'}
+                  >
+                    <Mic className="w-3.5 h-3.5" />
+                    <span>{isListeningTopic ? 'Listening...' : 'Speak'}</span>
+                  </button>
                 </div>
                 <div className="relative flex items-center">
                   <input
@@ -2846,18 +2820,7 @@ export default function App() {
                         setPromptInput('Give me a topic as a seed for your story');
                       }
                     }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        const lower = promptInput.trim().toLowerCase();
-                        if (lower === 'joke' || lower === 'jokes' || lower === '!joke' || lower === '/jokes' || lower === 'easter egg') {
-                          setIsJokesEasterEggOpen(true);
-                          return;
-                        }
-                        if (!isTopicEmptyOrDefault) {
-                          handleGenerate();
-                        }
-                      }
-                    }}
+                    onKeyDown={(e) => e.key === 'Enter' && !isTopicEmptyOrDefault && handleGenerate()}
                     placeholder={t.promptPlaceholder || 'Give me a topic as a seed for your story'}
                     className="w-full pl-3 pr-9 py-2 text-xs bg-amber-50/40 border border-amber-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium text-slate-800"
                   />
@@ -3177,29 +3140,10 @@ export default function App() {
                       setPromptInput('Give me a topic as a seed for your story');
                     }
                   }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      const lower = promptInput.trim().toLowerCase();
-                      if (lower === 'joke' || lower === 'jokes' || lower === '!joke' || lower === '/jokes' || lower === 'easter egg') {
-                        setIsJokesEasterEggOpen(true);
-                        return;
-                      }
-                      if (!isTopicEmptyOrDefault) {
-                        handleGenerate();
-                      }
-                    }
-                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && !isTopicEmptyOrDefault && handleGenerate()}
                   placeholder={t.promptPlaceholder || 'Give me a topic as a seed for your story'}
-                  className="w-full pl-3.5 pr-16 py-2 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#008450]"
+                  className="w-full pl-3.5 pr-10 py-2 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#008450]"
                 />
-                <button
-                  type="button"
-                  onClick={() => setIsJokesEasterEggOpen(true)}
-                  className="absolute right-9 p-1 rounded-md text-amber-600 hover:text-amber-800 hover:bg-amber-100 transition cursor-pointer text-xs"
-                  title="🎭 Jokes Easter Egg: 15 One-Liners on this topic!"
-                >
-                  🎭
-                </button>
                 <button
                   type="button"
                   onClick={handleToggleTopicVoiceInput}
@@ -4463,16 +4407,6 @@ export default function App() {
         onClose={handleCloseComicTour}
         currentMode={sidebarTab}
         onSelectMode={(mode) => setSidebarTab(mode)}
-      />
-
-      {/* Jokes Easter Egg Modal (15 One-Liners on Topic) */}
-      <JokesEasterEggModal
-        isOpen={isJokesEasterEggOpen}
-        onClose={() => setIsJokesEasterEggOpen(false)}
-        topic={promptInput}
-        targetLang={targetLang}
-        baseLang={baseLang}
-        onSpeakText={(txt) => speakText(txt)}
       />
 
       {/* Private Server Analytics Modal (Discreet Admin View) */}
