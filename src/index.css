@@ -49,3 +49,13 @@ html, body, #root {
 .animate-scale-up {
   animation: scaleUp 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+@keyframes bounceHorizontal {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-8px); }
+}
+
+.animate-bounce-horizontal {
+  animation: bounceHorizontal 1.3s ease-in-out infinite;
+}
+

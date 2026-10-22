@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+analytics_data/
+shared_stories/
+exports/

@@ -75,6 +75,8 @@ import { ShareStoryModal } from './components/ShareStoryModal';
 import { AnalyticsModal } from './components/AnalyticsModal';
 import { ContextualMicroHint } from './components/ContextualMicroHint';
 import { StoryInspectorModal } from './components/StoryInspectorModal';
+import { ComicGuideTour } from './components/ComicGuideTour';
+import { JokesEasterEggModal } from './components/JokesEasterEggModal';
 import { logAnalyticsEvent } from './utils/analytics';
 import { resolveSharedStoryFromUrl, isShareLinkInUrl } from './utils/shareUtils';
 import { classifyWordGrammar, getGrammarBadgeLabel, getGrammarStyle } from './utils/grammarHighlighter';
@@ -658,6 +660,22 @@ export default function App() {
   const [isInstallGuideOpen, setIsInstallGuideOpen] = useState(false);
   const [isConversationOpen, setIsConversationOpen] = useState(false);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
+  const [isComicTourOpen, setIsComicTourOpen] = useState(false);
+  const [isJokesEasterEggOpen, setIsJokesEasterEggOpen] = useState(false);
+
+  const handleCloseComicTour = () => {
+    setIsComicTourOpen(false);
+    try {
+      localStorage.setItem('querviam_comic_guide_v1', 'true');
+    } catch {}
+  };
+
+  const handleOpenComicTour = (mode?: 'build' | 'practice') => {
+    if (mode) {
+      setSidebarTab(mode);
+    }
+    setIsComicTourOpen(true);
+  };
   const [learnerStats, setLearnerStats] = useState<LearnerStats>(() => getLearnerStats());
   const [isStudioVoice, setIsStudioVoice] = useState(false);
   const [selectedVerb, setSelectedVerb] = useState<VerbItem | null>(null);
@@ -1013,6 +1031,19 @@ export default function App() {
     fetchStarter();
   }, []);
 
+  // First-time visitor: Automatically open Comic Guide Tour in build mode
+  useEffect(() => {
+    try {
+      const hasSeen = localStorage.getItem('querviam_comic_guide_v1');
+      if (!hasSeen) {
+        const timer = setTimeout(() => {
+          setIsComicTourOpen(true);
+        }, 800);
+        return () => clearTimeout(timer);
+      }
+    } catch {}
+  }, []);
+
   // Keyboard Shortcuts (Spacebar, R, L, Escape)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1020,6 +1051,13 @@ export default function App() {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'S' || e.key === 's')) {
         e.preventDefault();
         setIsAnalyticsOpen((prev) => !prev);
+        return;
+      }
+
+      // Secret Easter Egg Key combination: Ctrl+Shift+J or Cmd+Shift+J to toggle Jokes
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
+        e.preventDefault();
+        setIsJokesEasterEggOpen((prev) => !prev);
         return;
       }
 
@@ -2281,12 +2319,20 @@ export default function App() {
 
       {/* Sidebar Controls */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-40 w-72 sm:w-80 bg-white border-r border-[#008450]/20 shadow-lg lg:shadow-none flex flex-col transition-transform duration-200 ease-in-out shrink-0 h-full max-h-screen overflow-hidden ${
+        className={`fixed lg:static inset-y-0 left-0 z-40 w-72 sm:w-80 shadow-lg lg:shadow-none flex flex-col transition-colors duration-200 ease-in-out shrink-0 h-full max-h-screen overflow-hidden ${
+          sidebarTab === 'build'
+            ? 'bg-[#fcf8f2] border-r border-[#e8dfcf] text-slate-800'
+            : 'bg-[#edf8f1] border-r border-[#cbe6d4] text-slate-800'
+        } ${
           isSidebarMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
         {/* Querviam Brand & Create Story Header */}
-        <div className="p-4 border-b border-slate-100 flex flex-col gap-2.5">
+        <div className={`p-4 border-b flex flex-col gap-2.5 transition-colors duration-200 ${
+          sidebarTab === 'build'
+            ? 'bg-[#f7efe1]/80 border-[#e8dfcf]'
+            : 'bg-[#e2f3e8]/80 border-[#cbe6d4]'
+        }`}>
           <div className="flex items-center justify-between mb-0.5">
             <div
               className="flex items-center gap-2.5 cursor-pointer select-none"
@@ -2301,15 +2347,27 @@ export default function App() {
                 <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">Language Immersion</span>
               </div>
             </div>
-            <button
-              onClick={() => setIsSidebarMobileOpen(false)}
-              className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 lg:hidden cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => handleOpenComicTour(sidebarTab)}
+                className="flex items-center gap-1 text-[11px] font-black text-slate-950 bg-amber-400 hover:bg-amber-300 px-2.5 py-1 rounded-xl border-2 border-slate-950 shadow-[2px_2px_0px_#0f172a] transition cursor-pointer active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                title="Open Interactive Comic Guide"
+              >
+                <span>💬</span>
+                <span>Guide</span>
+              </button>
+              <button
+                onClick={() => setIsSidebarMobileOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 lg:hidden cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           <button
+            id="tour-build-generate"
             onClick={handleGenerate}
             disabled={isGenerating || isTopicEmptyOrDefault}
             title={
@@ -2340,15 +2398,19 @@ export default function App() {
         </div>
 
         {/* Sidebar Tabs: Build vs Practice (Desktop Only - on phones use bottom nav) */}
-        <div className="hidden lg:block px-4 pt-3 pb-2 border-b border-slate-100">
-          <div className="flex p-1 bg-slate-100 rounded-xl">
+        <div className={`hidden lg:block px-4 pt-3 pb-2.5 border-b transition-colors duration-200 ${
+          sidebarTab === 'build' ? 'border-[#e8dfcf] bg-[#f8f1e4]/40' : 'border-[#cbe6d4] bg-[#e2f3e8]/40'
+        }`}>
+          <div className={`flex p-1 rounded-xl transition-colors duration-200 ${
+            sidebarTab === 'build' ? 'bg-[#ede0ce]' : 'bg-[#d2eddd]'
+          }`}>
             <button
               type="button"
               onClick={() => setSidebarTab('build')}
               className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
                 sidebarTab === 'build'
-                  ? 'bg-white text-[#008450] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white text-amber-950 shadow-xs ring-1 ring-amber-300/60'
+                  : 'text-amber-900/70 hover:text-amber-950'
               }`}
             >
               <span>✨ {t.build}</span>
@@ -2358,12 +2420,26 @@ export default function App() {
               onClick={() => setSidebarTab('practice')}
               className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
                 sidebarTab === 'practice'
-                  ? 'bg-white text-[#008450] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white text-emerald-950 shadow-xs ring-1 ring-emerald-300/60'
+                  : 'text-emerald-900/70 hover:text-emerald-950'
               }`}
             >
               <span>🎯 {t.practice}</span>
             </button>
+          </div>
+
+          {/* Obvious Mode Indicator Banner for Desktop */}
+          <div className={`mt-2 px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center justify-between border transition-colors duration-200 ${
+            sidebarTab === 'build'
+              ? 'bg-amber-100/70 text-amber-900 border-amber-200/80 shadow-2xs'
+              : 'bg-emerald-100/70 text-emerald-900 border-emerald-200/80 shadow-2xs'
+          }`}>
+            <span className="flex items-center gap-1">
+              <span>{sidebarTab === 'build' ? '✨ Mode: Story Builder' : '🎯 Mode: Practice & Exercises'}</span>
+            </span>
+            <span className="text-[9px] font-semibold opacity-75 uppercase tracking-wider">
+              {sidebarTab === 'build' ? 'Craft Story' : 'Interactive'}
+            </span>
           </div>
         </div>
 
@@ -2372,13 +2448,13 @@ export default function App() {
           {sidebarTab === 'practice' ? (
             <>
               {/* Practice Mode */}
-              <div className="space-y-1.5">
+              <div id="tour-practice-activities" className="space-y-1.5 relative">
                 <div className="flex items-center justify-between">
-                  <label className="font-bold text-[11px] text-slate-500 uppercase tracking-wider">
+                  <label className="font-bold text-[11px] text-emerald-950/80 uppercase tracking-wider">
                     {t.practiceActivity}
                   </label>
                 </div>
-                <div className="space-y-1 bg-slate-50 p-2 rounded-xl border border-slate-200/80">
+                <div className="space-y-1 bg-white/95 p-2 rounded-xl border border-emerald-200/90 shadow-2xs">
                   {(() => {
                     const isTargetChinese =
                       isChinese(targetLang) || isChinese(currentStory?._meta?.targetLang);
@@ -2387,7 +2463,7 @@ export default function App() {
                       { val: 'cloze', label: `🙈 ${t.modeCloze}` },
                       { val: 'multipleChoice', label: `🎯 ${t.modeMultipleChoice}` },
                       { val: 'scramble', label: `🧩 ${t.modeScramble}` },
-                      { val: 'scrambleVoice', label: `🎧 ${t.modeScrambleVoice || 'Scramble (Voice only - Dictation)'}` },
+                      { val: 'scrambleVoice', label: `🎧 ${t.modeScrambleVoice || 'Scramble (from Dictation)'}` },
                       { val: 'quiz', label: `❓ Comprehension Quiz` },
                     ].map((m) => {
                       const isDisabledForChinese =
@@ -2399,14 +2475,14 @@ export default function App() {
                           title={
                             isDisabledForChinese
                               ? m.val === 'cloze'
-                                ? 'Cloze typing practice is disabled for Chinese as sentences do not use spaces and character typing requires IME composition. Please use Multiple Choice instead!'
+                                ? 'Spelling practice is disabled for Chinese as sentences do not use spaces and character typing requires IME composition. Please use Multiple Choice instead!'
                                 : 'Sentence scramble is disabled for Chinese as sentences do not use spaces between words. Please use Multiple Choice instead!'
                               : undefined
                           }
                           className={`flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg transition font-medium ${
                             isDisabledForChinese
                               ? 'opacity-40 cursor-not-allowed bg-slate-100/60 select-none text-slate-400'
-                              : 'hover:bg-white cursor-pointer'
+                              : 'hover:bg-emerald-50/80 cursor-pointer'
                           }`}
                         >
                           <div className="flex items-center gap-2 min-w-0">
@@ -2478,7 +2554,7 @@ export default function App() {
                     <span className="font-bold text-[10px] text-slate-400 uppercase tracking-wider block px-1">
                       {t.moreActivities}
                     </span>
-                    <div className="grid grid-cols-2 gap-1.5">
+                    <div id="tour-practice-tools" className="grid grid-cols-2 gap-1.5 relative">
                       <button
                         type="button"
                         onClick={() => setIsFlashcardsOpen(true)}
@@ -2521,10 +2597,10 @@ export default function App() {
               </div>
 
               {/* Speech Controls */}
-              <div className="space-y-3 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+              <div id="tour-practice-voice" className="space-y-3 bg-white/95 p-3 rounded-xl border border-emerald-200/90 shadow-2xs relative">
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="font-bold text-[10px] text-slate-500 uppercase tracking-wider">
+                    <span className="font-bold text-[10px] text-emerald-950/70 uppercase tracking-wider">
                       {t.speechSpeed}
                     </span>
                     <span className="font-mono text-emerald-800 font-bold">{speechRate.toFixed(2)}x</span>
@@ -2542,7 +2618,7 @@ export default function App() {
 
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="font-bold text-[10px] text-slate-500 uppercase tracking-wider">
+                    <span className="font-bold text-[10px] text-emerald-950/70 uppercase tracking-wider">
                       {t.sentencePause}
                     </span>
                     <span className="font-mono text-emerald-800 font-bold">{sentenceGap}s</span>
@@ -2561,18 +2637,18 @@ export default function App() {
 
               {/* Speech Voice Dropdown / Collapsible */}
               {contentType === 'story' ? (
-                <div className="border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+                <div className="border border-emerald-200/90 rounded-xl overflow-hidden bg-white/95 shadow-2xs">
                   <button
                     type="button"
                     onClick={() => setIsVoiceGroupOpen(!isVoiceGroupOpen)}
-                    className="w-full flex items-center justify-between p-2.5 font-bold text-[11px] text-slate-600 uppercase tracking-wider hover:bg-slate-100 transition cursor-pointer"
+                    className="w-full flex items-center justify-between p-2.5 font-bold text-[11px] text-emerald-950/80 uppercase tracking-wider hover:bg-emerald-50/60 transition cursor-pointer"
                   >
                     <span>{t.speechVoice} ({matchingVoices.length})</span>
                     {isVoiceGroupOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                   </button>
 
                   {isVoiceGroupOpen && (
-                    <div className="p-2 space-y-1 max-h-40 overflow-y-auto border-t border-slate-200 bg-white">
+                    <div className="p-2 space-y-1 max-h-40 overflow-y-auto border-t border-emerald-100 bg-white">
                       {matchingVoices.length === 0 ? (
                         <div className="text-slate-400 text-xs italic p-1">{t.offlineVoice}</div>
                       ) : (
@@ -2642,11 +2718,11 @@ export default function App() {
             <>
               {/* Build Story Options */}
               {/* Language Selection: Target Lang & Base Lang (I SPEAK & TARGET LANGUAGE) */}
-              <div className="space-y-2 sm:space-y-3 p-2.5 sm:p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl shadow-2xs">
+              <div id="tour-build-languages" className="space-y-2 sm:space-y-3 p-2.5 sm:p-3 bg-white/95 border border-amber-200/90 rounded-2xl shadow-2xs relative">
                 {/* I SPEAK Section (Dropdown) */}
                 <div>
                   <div className="flex items-center justify-between mb-1 sm:mb-1.5">
-                    <label className="font-bold text-[10px] sm:text-[11px] text-slate-700 uppercase tracking-wider block">
+                    <label className="font-bold text-[10px] sm:text-[11px] text-amber-950 uppercase tracking-wider block">
                       {t.iSpeakLabel || '🗣️ I SPEAK'}
                     </label>
                     <button
@@ -2657,7 +2733,7 @@ export default function App() {
                         handleSelectBaseLang(prevTarget);
                         handleSelectTargetLang(prevBase);
                       }}
-                      className="flex items-center gap-1 text-[10px] font-bold text-emerald-800 hover:text-emerald-950 bg-white hover:bg-emerald-100/70 px-2 py-0.5 rounded-lg border border-emerald-300 transition cursor-pointer shadow-2xs active:scale-95"
+                      className="flex items-center gap-1 text-[10px] font-bold text-amber-900 hover:text-amber-950 bg-amber-50 hover:bg-amber-100/80 px-2 py-0.5 rounded-lg border border-amber-300 transition cursor-pointer shadow-2xs active:scale-95"
                       title={t.flipLanguages || 'Swap / Flip I Speak & Target Language'}
                     >
                       <span>⇄ Flip</span>
@@ -2666,7 +2742,7 @@ export default function App() {
                   <select
                     value={baseLang}
                     onChange={(e) => handleSelectBaseLang(e.target.value)}
-                    className="w-full py-1.5 px-2.5 sm:p-2 bg-white border border-emerald-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#008450] cursor-pointer leading-tight"
+                    className="w-full py-1.5 px-2.5 sm:p-2 bg-white border border-amber-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer leading-tight"
                   >
                     {[...BASE_LANGUAGES]
                       .sort((a, b) => a.name.localeCompare(b.name))
@@ -2680,13 +2756,13 @@ export default function App() {
 
                 {/* Target Language (To Learn) Section */}
                 <div>
-                  <label className="font-bold text-[10px] sm:text-[11px] text-emerald-900 uppercase tracking-wider block mb-1">
+                  <label className="font-bold text-[10px] sm:text-[11px] text-amber-950 uppercase tracking-wider block mb-1">
                     {t.targetLanguageLabel || '🎯 Target Language (To Learn)'}
                   </label>
                   <select
                     value={targetLang}
                     onChange={(e) => handleSelectTargetLang(e.target.value)}
-                    className="w-full py-1.5 px-2.5 sm:p-2 bg-white border border-emerald-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#008450] cursor-pointer leading-tight"
+                    className="w-full py-1.5 px-2.5 sm:p-2 bg-white border border-amber-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer leading-tight"
                   >
                     {[...LANGUAGES]
                       .sort((a, b) => a.name.localeCompare(b.name))
@@ -2715,24 +2791,41 @@ export default function App() {
               </div>
 
               {/* Story Topic Seed Input (Prominently visible in Build tab on both Desktop and Mobile) */}
-              <div className="p-3 bg-white border-2 border-emerald-400 rounded-2xl shadow-xs space-y-2 ring-2 ring-emerald-50">
+              <div id="tour-build-topic" className="p-3 bg-white border-2 border-amber-400/90 rounded-2xl shadow-xs space-y-2 ring-2 ring-amber-100 relative">
                 <div className="flex items-center justify-between">
-                  <label className="font-extrabold text-[11px] text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
+                  <label
+                    onDoubleClick={() => setIsJokesEasterEggOpen(true)}
+                    className="font-extrabold text-[11px] text-amber-950 uppercase tracking-wider flex items-center gap-1.5 cursor-pointer select-none"
+                    title="Tip: Double-click or click 🎭 for 15 Topic One-Liner Jokes!"
+                  >
                     <span>💡 Story Topic / Idea</span>
                   </label>
-                  <button
-                    type="button"
-                    onClick={handleToggleTopicVoiceInput}
-                    className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-bold transition cursor-pointer shadow-2xs active:scale-95 ${
-                      isListeningTopic
-                        ? 'bg-rose-500 text-white animate-pulse'
-                        : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300'
-                    }`}
-                    title={isListeningTopic ? 'Stop listening' : 'Speak to input topic idea'}
-                  >
-                    <Mic className="w-3.5 h-3.5" />
-                    <span>{isListeningTopic ? 'Listening...' : 'Speak'}</span>
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    {/* Jokes Easter Egg Button */}
+                    <button
+                      type="button"
+                      onClick={() => setIsJokesEasterEggOpen(true)}
+                      className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-black transition cursor-pointer shadow-2xs active:scale-95 bg-amber-200 hover:bg-amber-300 text-amber-950 border border-amber-400"
+                      title="🎭 Easter Egg: 15 One-Liner Jokes on this topic!"
+                    >
+                      <span>🎭</span>
+                      <span className="text-[10px] font-bold">Jokes</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleToggleTopicVoiceInput}
+                      className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-bold transition cursor-pointer shadow-2xs active:scale-95 ${
+                        isListeningTopic
+                          ? 'bg-rose-500 text-white animate-pulse'
+                          : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300'
+                      }`}
+                      title={isListeningTopic ? 'Stop listening' : 'Speak to input topic idea'}
+                    >
+                      <Mic className="w-3.5 h-3.5" />
+                      <span>{isListeningTopic ? 'Listening...' : 'Speak'}</span>
+                    </button>
+                  </div>
                 </div>
                 <div className="relative flex items-center">
                   <input
@@ -2753,9 +2846,20 @@ export default function App() {
                         setPromptInput('Give me a topic as a seed for your story');
                       }
                     }}
-                    onKeyDown={(e) => e.key === 'Enter' && !isTopicEmptyOrDefault && handleGenerate()}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const lower = promptInput.trim().toLowerCase();
+                        if (lower === 'joke' || lower === 'jokes' || lower === '!joke' || lower === '/jokes' || lower === 'easter egg') {
+                          setIsJokesEasterEggOpen(true);
+                          return;
+                        }
+                        if (!isTopicEmptyOrDefault) {
+                          handleGenerate();
+                        }
+                      }
+                    }}
                     placeholder={t.promptPlaceholder || 'Give me a topic as a seed for your story'}
-                    className="w-full pl-3 pr-9 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#008450] font-medium text-slate-800"
+                    className="w-full pl-3 pr-9 py-2 text-xs bg-amber-50/40 border border-amber-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium text-slate-800"
                   />
                   <button
                     type="button"
@@ -2763,7 +2867,7 @@ export default function App() {
                     className={`absolute right-2 p-1 rounded-md transition cursor-pointer ${
                       isListeningTopic
                         ? 'text-rose-600 animate-pulse'
-                        : 'text-slate-400 hover:text-emerald-700'
+                        : 'text-amber-700/60 hover:text-amber-900'
                     }`}
                     title={isListeningTopic ? 'Stop listening' : 'Speak topic idea'}
                   >
@@ -2773,9 +2877,9 @@ export default function App() {
               </div>
 
               {/* Difficulty */}
-              <div className="space-y-1.5">
+              <div id="tour-build-difficulty" className="space-y-1.5 relative">
                 <div className="flex items-center justify-between">
-                  <label className="font-bold text-[11px] text-slate-500 uppercase tracking-wider">
+                  <label className="font-bold text-[11px] text-amber-950/70 uppercase tracking-wider">
                     {t.difficultyLevel}
                   </label>
                   {difficulty === 'Master (C2+)' && (
@@ -2788,7 +2892,7 @@ export default function App() {
                     </button>
                   )}
                 </div>
-                <div className="grid grid-cols-1 gap-1">
+                <div className="space-y-1 bg-white/95 p-2 rounded-xl border border-amber-200/80 shadow-2xs">
                   {[
                     { val: 'Introduction', label: t.diffIntro },
                     { val: 'Beginner (A1-A2)', label: t.diffBeginner },
@@ -2803,9 +2907,9 @@ export default function App() {
                           className={`flex items-center justify-between p-1.5 cursor-pointer font-medium rounded-xl transition ${
                             isSelected
                               ? d.val === 'Master (C2+)'
-                                ? 'bg-amber-50/90 text-amber-950 font-bold border border-amber-300/80 shadow-2xs'
-                                : 'bg-emerald-50/60 text-emerald-950 font-bold'
-                              : 'hover:bg-slate-50 text-slate-700'
+                                ? 'bg-amber-100/90 text-amber-950 font-bold border border-amber-300/80 shadow-2xs'
+                                : 'bg-amber-50 text-amber-950 font-bold border border-amber-200/80'
+                              : 'hover:bg-amber-50/50 text-slate-700'
                           }`}
                         >
                           <div className="flex items-center gap-2 min-w-0">
@@ -2820,7 +2924,7 @@ export default function App() {
                                   setIsMasterModalOpen(true);
                                 }
                               }}
-                              className="accent-[#008450]"
+                              className="accent-amber-600"
                             />
                             <span className="text-xs truncate">{d.label}</span>
                           </div>
@@ -2867,24 +2971,24 @@ export default function App() {
 
               {/* Tense */}
               <div className="space-y-1.5">
-                <label className="font-bold text-[11px] text-slate-500 uppercase tracking-wider">
+                <label className="font-bold text-[11px] text-amber-950/70 uppercase tracking-wider">
                   {t.tenseFocus}
                 </label>
-                <div className="grid grid-cols-2 gap-1">
+                <div className="grid grid-cols-2 gap-1 bg-white/95 p-2 rounded-xl border border-amber-200/80 shadow-2xs">
                   {[
                     { val: 'Natural / Mixed Tenses', label: t.tenseMixed },
                     { val: 'Present Tense', label: t.tensePresent },
                     { val: 'Past Tense', label: t.tensePast },
                     { val: 'Future Tense', label: t.tenseFuture },
                   ].map((item) => (
-                    <label key={item.val} className="flex items-center gap-1.5 p-1 cursor-pointer font-medium text-[11px] hover:bg-slate-50 rounded-lg">
+                    <label key={item.val} className="flex items-center gap-1.5 p-1 cursor-pointer font-medium text-[11px] hover:bg-amber-50/60 rounded-lg">
                       <input
                         type="radio"
                         name="tense"
                         value={item.val}
                         checked={tense === item.val}
                         onChange={(e) => setTense(e.target.value)}
-                        className="accent-[#008450]"
+                        className="accent-amber-600"
                       />
                       <span className="truncate">{item.label}</span>
                     </label>
@@ -2894,24 +2998,24 @@ export default function App() {
 
               {/* Story Length & Format */}
               <div className="space-y-1.5">
-                <label className="font-bold text-[11px] text-slate-500 uppercase tracking-wider block">
+                <label className="font-bold text-[11px] text-amber-950/70 uppercase tracking-wider block">
                   {t.storyLength}
                 </label>
-                <div className="grid grid-cols-2 gap-1">
+                <div className="grid grid-cols-2 gap-1 bg-white/95 p-2 rounded-xl border border-amber-200/80 shadow-2xs">
                   {[
                     { val: '5', label: t.lengthShort },
                     { val: '10', label: t.lengthMedium },
                     { val: '15', label: t.lengthLong },
                     { val: '50', label: t.lengthMax },
                   ].map((l) => (
-                    <label key={l.val} className="flex items-center gap-1.5 p-1 cursor-pointer font-medium hover:bg-slate-50 rounded-lg">
+                    <label key={l.val} className="flex items-center gap-1.5 p-1 cursor-pointer font-medium hover:bg-amber-50/60 rounded-lg">
                       <input
                         type="radio"
                         name="length"
                         value={l.val}
                         checked={((['5', '10', '15', '50'].includes(length) ? length : '10') === l.val)}
                         onChange={(e) => handleSelectLength(e.target.value)}
-                        className="accent-[#008450]"
+                        className="accent-amber-600"
                       />
                       <span>{l.label}</span>
                     </label>
@@ -2920,67 +3024,69 @@ export default function App() {
               </div>
 
               {/* Content Format (Story vs Discussion) */}
-              <div className="space-y-1.5">
-                <label className="font-bold text-[11px] text-slate-500 uppercase tracking-wider">
+              <div id="tour-build-format" className="space-y-1.5 relative">
+                <label className="font-bold text-[11px] text-amber-950/70 uppercase tracking-wider">
                   {t.formatAndGenre}
                 </label>
-                <div className="flex gap-2">
-                  <label className="flex-1 flex items-center justify-center gap-1 p-2 rounded-lg border border-slate-200 bg-slate-50 cursor-pointer text-xs font-semibold">
-                    <input
-                      type="radio"
-                      name="contentType"
-                      value="story"
-                      checked={contentType === 'story'}
-                      onChange={() => setContentType('story')}
-                      className="accent-[#008450]"
-                    />
-                    <span>{t.story}</span>
-                  </label>
-                  <label className="flex-1 flex items-center justify-center gap-1 p-2 rounded-lg border border-slate-200 bg-slate-50 cursor-pointer text-xs font-semibold">
-                    <input
-                      type="radio"
-                      name="contentType"
-                      value="discussion"
-                      checked={contentType === 'discussion'}
-                      onChange={() => setContentType('discussion')}
-                      className="accent-[#008450]"
-                    />
-                    <span>{t.dialogue}</span>
-                  </label>
-                </div>
+                <div className="bg-white/95 p-2 rounded-xl border border-amber-200/80 shadow-2xs space-y-2">
+                  <div className="flex gap-2">
+                    <label className="flex-1 flex items-center justify-center gap-1 p-2 rounded-lg border border-amber-200/80 bg-amber-50/40 hover:bg-amber-50 cursor-pointer text-xs font-semibold">
+                      <input
+                        type="radio"
+                        name="contentType"
+                        value="story"
+                        checked={contentType === 'story'}
+                        onChange={() => setContentType('story')}
+                        className="accent-amber-600"
+                      />
+                      <span>{t.story}</span>
+                    </label>
+                    <label className="flex-1 flex items-center justify-center gap-1 p-2 rounded-lg border border-amber-200/80 bg-amber-50/40 hover:bg-amber-50 cursor-pointer text-xs font-semibold">
+                      <input
+                        type="radio"
+                        name="contentType"
+                        value="discussion"
+                        checked={contentType === 'discussion'}
+                        onChange={() => setContentType('discussion')}
+                        className="accent-amber-600"
+                      />
+                      <span>{t.dialogue}</span>
+                    </label>
+                  </div>
 
-                <div className="flex gap-2 pt-1">
-                  <label className="flex-1 flex items-center justify-center gap-1 p-1.5 rounded-lg border border-slate-200 cursor-pointer text-[11px]">
-                    <input
-                      type="radio"
-                      name="isFact"
-                      value="true"
-                      checked={isFact === true}
-                      onChange={() => setIsFact(true)}
-                      className="accent-[#008450]"
-                    />
-                    <span>{t.nonFiction}</span>
-                  </label>
-                  <label className="flex-1 flex items-center justify-center gap-1 p-1.5 rounded-lg border border-slate-200 cursor-pointer text-[11px]">
-                    <input
-                      type="radio"
-                      name="isFact"
-                      value="false"
-                      checked={isFact === false}
-                      onChange={() => setIsFact(false)}
-                      className="accent-[#008450]"
-                    />
-                    <span>{t.fiction}</span>
-                  </label>
+                  <div className="flex gap-2 pt-0.5">
+                    <label className="flex-1 flex items-center justify-center gap-1 p-1.5 rounded-lg border border-amber-200/70 hover:bg-amber-50/50 cursor-pointer text-[11px]">
+                      <input
+                        type="radio"
+                        name="isFact"
+                        value="true"
+                        checked={isFact === true}
+                        onChange={() => setIsFact(true)}
+                        className="accent-amber-600"
+                      />
+                      <span>{t.nonFiction}</span>
+                    </label>
+                    <label className="flex-1 flex items-center justify-center gap-1 p-1.5 rounded-lg border border-amber-200/70 hover:bg-amber-50/50 cursor-pointer text-[11px]">
+                      <input
+                        type="radio"
+                        name="isFact"
+                        value="false"
+                        checked={isFact === false}
+                        onChange={() => setIsFact(false)}
+                        className="accent-amber-600"
+                      />
+                      <span>{t.fiction}</span>
+                    </label>
+                  </div>
                 </div>
               </div>
 
               {/* Verb conjugations checkbox (Disabled when length is Max) */}
               <label
-                className={`flex items-center gap-2 p-2 rounded-xl border transition ${
+                className={`flex items-center gap-2 p-2.5 rounded-xl border transition shadow-2xs ${
                   length === '50'
                     ? 'bg-slate-100/90 border-slate-200 text-slate-400 cursor-not-allowed'
-                    : 'bg-emerald-50/70 border-emerald-200/60 cursor-pointer font-medium text-emerald-900'
+                    : 'bg-white/95 border-amber-200/80 cursor-pointer font-medium text-amber-950 hover:bg-amber-50/50'
                 }`}
                 title={length === '50' ? 'Conjugated verbs are disabled for Max length stories to ensure fast, reliable generation.' : undefined}
               >
@@ -2989,7 +3095,7 @@ export default function App() {
                   checked={length === '50' ? false : includeVerbs}
                   disabled={length === '50'}
                   onChange={(e) => setIncludeVerbs(e.target.checked)}
-                  className="accent-[#008450] disabled:opacity-50"
+                  className="accent-amber-600 disabled:opacity-50"
                 />
                 <span className="flex-1">{t.includeVerbs}</span>
                 {length === '50' && (
@@ -3071,10 +3177,29 @@ export default function App() {
                       setPromptInput('Give me a topic as a seed for your story');
                     }
                   }}
-                  onKeyDown={(e) => e.key === 'Enter' && !isTopicEmptyOrDefault && handleGenerate()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const lower = promptInput.trim().toLowerCase();
+                      if (lower === 'joke' || lower === 'jokes' || lower === '!joke' || lower === '/jokes' || lower === 'easter egg') {
+                        setIsJokesEasterEggOpen(true);
+                        return;
+                      }
+                      if (!isTopicEmptyOrDefault) {
+                        handleGenerate();
+                      }
+                    }
+                  }}
                   placeholder={t.promptPlaceholder || 'Give me a topic as a seed for your story'}
-                  className="w-full pl-3.5 pr-10 py-2 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#008450]"
+                  className="w-full pl-3.5 pr-16 py-2 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#008450]"
                 />
+                <button
+                  type="button"
+                  onClick={() => setIsJokesEasterEggOpen(true)}
+                  className="absolute right-9 p-1 rounded-md text-amber-600 hover:text-amber-800 hover:bg-amber-100 transition cursor-pointer text-xs"
+                  title="🎭 Jokes Easter Egg: 15 One-Liners on this topic!"
+                >
+                  🎭
+                </button>
                 <button
                   type="button"
                   onClick={handleToggleTopicVoiceInput}
@@ -3112,6 +3237,17 @@ export default function App() {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2">
+            {/* Comic Guide Tour Button */}
+            <button
+              type="button"
+              onClick={() => handleOpenComicTour(sidebarTab)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 border-2 border-slate-950 text-xs font-black rounded-xl shadow-[2px_2px_0px_#0f172a] transition cursor-pointer active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+              title="Open Interactive Comic Guide (Speech bubbles & section arrows)"
+            >
+              <span className="text-sm">💬</span>
+              <span className="hidden sm:inline">Guide</span>
+            </button>
+
             {/* Daily Streak & Progress Tracker */}
             <button
               onClick={() => setIsStatsOpen(true)}
@@ -4321,6 +4457,24 @@ export default function App() {
         baseLang={baseLang}
       />
 
+      {/* Interactive Comic Guide Tour (Comic speech bubbles & pointing arrows) */}
+      <ComicGuideTour
+        isOpen={isComicTourOpen}
+        onClose={handleCloseComicTour}
+        currentMode={sidebarTab}
+        onSelectMode={(mode) => setSidebarTab(mode)}
+      />
+
+      {/* Jokes Easter Egg Modal (15 One-Liners on Topic) */}
+      <JokesEasterEggModal
+        isOpen={isJokesEasterEggOpen}
+        onClose={() => setIsJokesEasterEggOpen(false)}
+        topic={promptInput}
+        targetLang={targetLang}
+        baseLang={baseLang}
+        onSpeakText={(txt) => speakText(txt)}
+      />
+
       {/* Private Server Analytics Modal (Discreet Admin View) */}
       <AnalyticsModal
         isOpen={isAnalyticsOpen}
@@ -4380,15 +4534,23 @@ export default function App() {
             {/* Header */}
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-rose-100 border border-rose-200 flex items-center justify-center shrink-0 text-rose-700">
+                <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${
+                  errorMessage.code.includes('SHARED')
+                    ? 'bg-amber-100 border-amber-200 text-amber-700'
+                    : 'bg-rose-100 border-rose-200 text-rose-700'
+                }`}>
                   <AlertTriangle className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900 leading-tight">
-                    Story Generation Issue
+                    {errorMessage.code.includes('SHARED') ? 'Shared Story Notice' : 'Story Generation Issue'}
                   </h3>
                   <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                    <span className="font-mono text-[11px] font-black px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-300">
+                    <span className={`font-mono text-[11px] font-black px-2 py-0.5 rounded-md border ${
+                      errorMessage.code.includes('SHARED')
+                        ? 'bg-amber-100 text-amber-800 border-amber-300'
+                        : 'bg-rose-100 text-rose-800 border-rose-300'
+                    }`}>
                       {errorMessage.code}
                     </span>
                     {errorMessage.source && (
@@ -4409,7 +4571,11 @@ export default function App() {
             </div>
 
             {/* Error Message */}
-            <div className="p-3.5 bg-rose-50/60 border border-rose-200/80 rounded-xl text-sm text-slate-800 leading-relaxed font-medium">
+            <div className={`p-3.5 border rounded-xl text-sm leading-relaxed font-medium ${
+              errorMessage.code.includes('SHARED')
+                ? 'bg-amber-50/70 border-amber-200 text-slate-800'
+                : 'bg-rose-50/60 border-rose-200/80 text-slate-800'
+            }`}>
               {errorMessage.text}
             </div>
 

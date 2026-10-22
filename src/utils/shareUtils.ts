@@ -28,10 +28,64 @@ function fromUrlSafeBase64(b64: string): string {
   return decodeURIComponent(percentEncoded);
 }
 
+const SHARED_CACHE_KEY = 'querviam_shared_stories_cache_v1';
+
+export function saveSharedStoryToLocalCache(id: string, story: StoryData) {
+  if (typeof window === 'undefined' || !id || !story) return;
+  try {
+    const raw = localStorage.getItem(SHARED_CACHE_KEY);
+    const map = raw ? JSON.parse(raw) : {};
+    map[id] = { story, savedAt: Date.now() };
+    const keys = Object.keys(map);
+    if (keys.length > 50) {
+      delete map[keys[0]];
+    }
+    localStorage.setItem(SHARED_CACHE_KEY, JSON.stringify(map));
+  } catch (_) {}
+}
+
+export function getSharedStoryFromLocalCache(id: string): StoryData | null {
+  if (typeof window === 'undefined' || !id) return null;
+  try {
+    const raw = localStorage.getItem(SHARED_CACHE_KEY);
+    if (!raw) return null;
+    const map = JSON.parse(raw);
+    return map[id]?.story || null;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Creates a sleek short URL via server endpoint (e.g. https://querviam.com/s/Ab3K9x)
- * with a 30-day automatic expiration to keep server storage minimal and bounded.
- * Falls back to offline self-contained hash if the server cannot be reached.
+ * Extracts a compact URL-safe base64 hash of the story data.
+ */
+export function getStorySafeHash(story: StoryData): string {
+  try {
+    const compact: Partial<StoryData> = {
+      title_target: story.title_target,
+      title_en: story.title_en,
+      contentType: story.contentType,
+      _meta: story._meta,
+      sentences: (story.sentences || []).map((s) => ({
+        target: s.target,
+        en: s.en,
+        speaker: s.speaker,
+        verbs: s.verbs,
+      })),
+      quiz: story.quiz,
+      grammarBites: story.grammarBites,
+    };
+    return toUrlSafeBase64(JSON.stringify(compact));
+  } catch (e) {
+    console.warn('Failed generating story hash:', e);
+    return '';
+  }
+}
+
+/**
+ * Creates a sleek short URL via server endpoint (e.g. https://querviam.com/s/Ab3K9x#story=...)
+ * with at least 30-day automatic expiration that renews by a week each time it is accessed.
+ * Includes a client fragment fallback hash so links stay 100% resilient across container redeployments!
  */
 export async function createShortStoryShareUrl(
   story: StoryData,
@@ -47,9 +101,16 @@ export async function createShortStoryShareUrl(
     if (res.ok) {
       const data = await res.json();
       if (data && data.id) {
+        saveSharedStoryToLocalCache(data.id, story);
         const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const storyHash = getStorySafeHash(story);
+        // Resilient hybrid URL: server short code + client fragment hash fallback
+        const shareUrl = storyHash
+          ? `${origin}/s/${data.id}#story=${storyHash}`
+          : `${origin}/s/${data.id}`;
+
         return {
-          url: `${origin}/s/${data.id}`,
+          url: shareUrl,
           id: data.id,
           expiresAt: data.expiresAt,
           isShort: true,
@@ -72,22 +133,7 @@ export async function createShortStoryShareUrl(
  */
 export function createStoryShareUrl(story: StoryData): string {
   try {
-    const compact: Partial<StoryData> = {
-      title_target: story.title_target,
-      title_en: story.title_en,
-      contentType: story.contentType,
-      _meta: story._meta,
-      sentences: (story.sentences || []).map((s) => ({
-        target: s.target,
-        en: s.en,
-        speaker: s.speaker,
-        verbs: s.verbs,
-      })),
-      quiz: story.quiz,
-      grammarBites: story.grammarBites,
-    };
-    const jsonStr = JSON.stringify(compact);
-    const b64 = toUrlSafeBase64(jsonStr);
+    const b64 = getStorySafeHash(story);
     const baseUrl = window.location.origin + window.location.pathname;
     return `${baseUrl}#story=${b64}`;
   } catch (e) {
@@ -333,12 +379,36 @@ export async function resolveSharedStoryFromUrl(): Promise<{ story: StoryData | 
       if (res.ok) {
         const data = await res.json();
         if (data.story && data.story.title_target && Array.isArray(data.story.sentences)) {
+          saveSharedStoryToLocalCache(shortId, data.story);
           return { story: data.story as StoryData };
         }
-      } else if (res.status === 410) {
-        return { story: null, error: 'This shared story link has expired (links stay active for 30 days).' };
+      }
+      
+      // Fallback 1: Check embedded hash payload
+      const fallbackStory = parseSharedStoryFromUrl();
+      if (fallbackStory && fallbackStory.title_target) {
+        saveSharedStoryToLocalCache(shortId, fallbackStory);
+        // Auto-rehydrate the new container so it's restored on the new Docker machine
+        try {
+          fetch('/api/share/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: shortId, story: fallbackStory, ttlDays: 30 }),
+          }).catch(() => {});
+        } catch (_) {}
+        return { story: fallbackStory };
+      }
+
+      // Fallback 2: Check local browser cache
+      const cachedStory = getSharedStoryFromLocalCache(shortId);
+      if (cachedStory && cachedStory.title_target) {
+        return { story: cachedStory };
+      }
+
+      if (res.status === 410) {
+        return { story: null, error: 'This shared story link has expired. Shared stories are kept for at least a week and renewed whenever accessed.' };
       } else if (res.status === 404) {
-        return { story: null, error: 'Shared story was not found or has been removed.' };
+        return { story: null, error: 'Shared story link was not found or has expired.' };
       }
     }
   } catch (shortErr) {

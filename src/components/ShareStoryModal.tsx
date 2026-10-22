@@ -490,7 +490,7 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
               </button>
             </div>
             <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1">
-              <span>⚡</span> When opened, Querviam pre-loads the story with all audio and exercises, and saves a permanent copy to your friend's library!
+              <span>⚡</span> Shared stories stay active for at least a week and renew whenever opened so they can easily be passed on to other learners!
             </p>
           </div>
 
