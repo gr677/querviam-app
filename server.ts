@@ -3494,7 +3494,9 @@ CRITICAL REQUIREMENTS:
   });
 
   app.get('/sitemap.xml', (_req, res) => {
-    const sitemapPath = path.join(__dirname, 'public', 'sitemap.xml');
+    const pubPath = path.join(__dirname, 'public', 'sitemap.xml');
+    const distPath = path.join(__dirname, 'dist', 'sitemap.xml');
+    const sitemapPath = fs.existsSync(pubPath) ? pubPath : distPath;
     if (fs.existsSync(sitemapPath)) {
       res.type('application/xml').sendFile(sitemapPath);
     } else {

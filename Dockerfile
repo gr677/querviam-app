@@ -20,15 +20,19 @@ ENV NODE_ENV=production
 ENV PORT=8080
 
 COPY package*.json ./
-RUN npm install --omit=dev --legacy-peer-deps && npm install tsx --legacy-peer-deps
+RUN npm install --omit=dev --legacy-peer-deps
 
-# Copy built frontend assets and server
+# Copy built frontend assets, public directory, server code, and configs
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/public ./public
 COPY --from=builder /app/exports ./exports
+COPY --from=builder /app/shared_stories ./shared_stories
+COPY --from=builder /app/src ./src
 COPY --from=builder /app/server.ts ./server.ts
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
-# Ensure runtime directory permissions
-RUN mkdir -p /app/exports /app/shared_stories && chown -R node:node /app
+# Ensure runtime directory permissions for writes (exports, shared stories, analytics)
+RUN mkdir -p /app/exports /app/shared_stories /app/analytics_data && chown -R node:node /app
 
 USER node
 EXPOSE 8080
