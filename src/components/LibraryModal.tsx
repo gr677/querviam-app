@@ -846,14 +846,14 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
           )}
         </div>
 
-        {/* Mobile Filter Drawer Overlay Sheet */}
+        {/* Mobile Filter Drawer Overlay Sheet - Anchored to Top */}
         {showFiltersMobile && (
           <div
-            className="sm:hidden fixed inset-0 z-60 bg-black/50 backdrop-blur-xs flex flex-col justify-end"
+            className="sm:hidden fixed inset-0 z-60 bg-black/50 backdrop-blur-xs flex flex-col justify-start"
             onClick={() => setShowFiltersMobile(false)}
           >
             <div
-              className="bg-white rounded-t-2xl shadow-2xl border-t border-slate-200 p-4 max-h-[85vh] flex flex-col animate-slide-up"
+              className="bg-white rounded-b-2xl shadow-2xl border-b border-slate-200 p-4 max-h-[85vh] flex flex-col animate-slide-down"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
