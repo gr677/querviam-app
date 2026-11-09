@@ -8,7 +8,7 @@ COPY package*.json ./
 RUN npm install --legacy-peer-deps
 
 COPY . .
-RUN mkdir -p /app/exports
+RUN mkdir -p /app/exports /app/shared_stories
 RUN npm run build
 
 # Stage 2: Production runtime image
@@ -26,7 +26,6 @@ RUN npm install --omit=dev --legacy-peer-deps
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/exports ./exports
-COPY --from=builder /app/shared_stories ./shared_stories
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/server.ts ./server.ts
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
