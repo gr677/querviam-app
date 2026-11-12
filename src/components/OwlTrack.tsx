@@ -87,7 +87,7 @@ export const OwlTrack: React.FC<OwlTrackProps> = ({
 
   return (
     <div
-      className="hidden sm:flex w-12 bg-[#eef2f5] border-r border-[#dfe5eb] shadow-[inset_2px_0_4px_rgba(0,0,0,0.06)] flex-col items-center justify-between z-10 select-none transition-all shrink-0 h-full max-h-screen h-[100dvh] overflow-hidden"
+      className="hidden sm:flex w-12 bg-[#eef2f5] border-r border-[#dfe5eb] shadow-[inset_2px_0_4px_rgba(0,0,0,0.06)] flex-col items-center justify-between z-10 select-none transition-all shrink-0 h-full overflow-hidden"
       title={tooltipText}
     >
       {/* Top Header: Score & Reset button */}

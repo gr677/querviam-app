@@ -30,6 +30,7 @@ interface ComprehensionQuizViewProps {
   onSpeak: (text: string) => void;
   onSpeakSentence?: (index: number) => void;
   onWordClick?: (word: string, sentenceIndex: number, sentenceContext?: string) => void;
+  onExitQuiz?: () => void;
 }
 
 export const ComprehensionQuizView: React.FC<ComprehensionQuizViewProps> = ({
@@ -44,6 +45,7 @@ export const ComprehensionQuizView: React.FC<ComprehensionQuizViewProps> = ({
   onRegenerateQuestions,
   onSpeak,
   onWordClick,
+  onExitQuiz,
 }) => {
   const [revealedTranslations, setRevealedTranslations] = useState<Record<number, boolean>>({});
   const [hintPlayingIdx, setHintPlayingIdx] = useState<number | null>(null);
@@ -132,7 +134,18 @@ export const ComprehensionQuizView: React.FC<ComprehensionQuizViewProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+          <div className="flex items-center flex-wrap gap-2 self-end sm:self-center shrink-0">
+            {onExitQuiz && (
+              <button
+                type="button"
+                onClick={onExitQuiz}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl transition cursor-pointer shadow-2xs active:scale-95"
+                title="Exit quiz and return to reading the story"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-[#008450]" />
+                <span>Back to Story</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={onResetQuiz}

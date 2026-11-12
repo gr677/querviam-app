@@ -52,7 +52,7 @@ export const QuizPrepAdvertModal: React.FC<QuizPrepAdvertModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in google-anno-skip no-ads"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border-2 border-emerald-300 overflow-hidden flex flex-col animate-scale-up">
+      <div className="w-full max-w-lg max-h-[90dvh] overflow-y-auto bg-white rounded-3xl shadow-2xl border-2 border-emerald-300 flex flex-col animate-scale-up">
         {/* Header bar */}
         <div className="bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 text-white px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">

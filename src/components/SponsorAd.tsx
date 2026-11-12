@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Coffee, Plane, Headphones, Book, Globe, Volume2, ExternalLink, Sparkles, X, Info } from 'lucide-react';
 import { AD_CONFIG, SAMPLE_SPONSORS, SponsorAdItem } from '../utils/adsData';
 
@@ -16,6 +16,38 @@ interface SponsorAdProps {
   className?: string;
 }
 
+const adSenseReadyCallbacks: Array<() => void> = [];
+let adSenseScriptLoaded = false;
+
+// Safely inject Google AdSense script only on screens with active, substantial publisher content
+function loadAdSenseScript(clientId: string, onReady: () => void) {
+  if (typeof document === 'undefined' || !clientId) return;
+
+  if (adSenseScriptLoaded || (typeof window !== 'undefined' && (window.adsbygoogle as any)?.loaded)) {
+    adSenseScriptLoaded = true;
+    onReady();
+    return;
+  }
+
+  adSenseReadyCallbacks.push(onReady);
+
+  const scriptId = 'google-adsense-script';
+  let script = document.getElementById(scriptId) as HTMLScriptElement | null;
+  if (!script) {
+    script = document.createElement('script');
+    script.id = scriptId;
+    script.async = true;
+    script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`;
+    script.crossOrigin = 'anonymous';
+    script.addEventListener('load', () => {
+      adSenseScriptLoaded = true;
+      const cbs = adSenseReadyCallbacks.splice(0, adSenseReadyCallbacks.length);
+      cbs.forEach((cb) => cb());
+    });
+    document.head.appendChild(script);
+  }
+}
+
 export const SponsorAd: React.FC<SponsorAdProps> = ({
   placement,
   targetLang,
@@ -26,36 +58,87 @@ export const SponsorAd: React.FC<SponsorAdProps> = ({
   const [translated, setTranslated] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [isVisibleWithWidth, setIsVisibleWithWidth] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const adRef = useRef<HTMLModElement>(null);
 
-// Safely inject Google AdSense script only on screens with active, substantial publisher content
-function ensureAdSenseScriptLoaded(clientId: string) {
-  if (typeof document === 'undefined' || !clientId) return;
-  const scriptId = 'google-adsense-script';
-  if (document.getElementById(scriptId)) return;
-  const script = document.createElement('script');
-  script.id = scriptId;
-  script.async = true;
-  script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`;
-  script.crossOrigin = 'anonymous';
-  document.head.appendChild(script);
-}
+  const isEligible = AD_CONFIG.USE_REAL_ADS && placement !== 'sidebar' && hasSubstantialContent && !dismissed;
+
+  // Measure container width before mounting <ins class="adsbygoogle"> so hidden breakpoints (display: none) never mount 0-width slots
+  useEffect(() => {
+    if (!isEligible || typeof window === 'undefined') {
+      setIsVisibleWithWidth(false);
+      return;
+    }
+
+    const checkDimensions = () => {
+      const el = containerRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const visible = rect.width >= 50 && el.offsetParent !== null;
+      setIsVisibleWithWidth((prev) => (prev === visible ? prev : visible));
+    };
+
+    checkDimensions();
+    const raf = window.requestAnimationFrame(checkDimensions);
+
+    let observer: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined' && containerRef.current) {
+      observer = new ResizeObserver(checkDimensions);
+      observer.observe(containerRef.current);
+    }
+    window.addEventListener('resize', checkDimensions);
+
+    return () => {
+      window.cancelAnimationFrame(raf);
+      if (observer) observer.disconnect();
+      window.removeEventListener('resize', checkDimensions);
+    };
+  }, [isEligible]);
+
+  // Push AdSense unit exactly once per visible mounted <ins> element after script loads
+  useEffect(() => {
+    if (!isEligible || !isVisibleWithWidth || typeof window === 'undefined') return;
+    let cancelled = false;
+
+    const tryPushAd = () => {
+      if (cancelled) return;
+      const insEl = adRef.current;
+      if (!insEl || !insEl.isConnected) return;
+
+      // Guard against React StrictMode double-effects or already-populated slots
+      if (insEl.dataset.adRequested === '1' || insEl.getAttribute('data-adsbygoogle-status')) {
+        return;
+      }
+
+      // Verify live non-zero width before calling push({})
+      const rect = insEl.getBoundingClientRect();
+      if (rect.width < 50 || insEl.offsetParent === null) {
+        return;
+      }
+
+      const pendingSlots = document.querySelectorAll('ins.adsbygoogle:not([data-adsbygoogle-status])');
+      if (pendingSlots.length === 0) return;
+
+      insEl.dataset.adRequested = '1';
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      } catch {
+        // Harmless fallback if adblocker is active
+      }
+    };
+
+    loadAdSenseScript(AD_CONFIG.ADSENSE_CLIENT_ID, tryPushAd);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isEligible, isVisibleWithWidth, placement]);
 
   // AdSense Policy Safeguard: Never render ads on sidebar navigation or screens without publisher content
   if (placement === 'sidebar' || !hasSubstantialContent || dismissed) {
     return null;
   }
-
-  // Push AdSense unit to queue once component is mounted in DOM on a content screen
-  useEffect(() => {
-    if (AD_CONFIG.USE_REAL_ADS && hasSubstantialContent && !dismissed && typeof window !== 'undefined') {
-      ensureAdSenseScriptLoaded(AD_CONFIG.ADSENSE_CLIENT_ID);
-      try {
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
-      } catch (e) {
-        // Harmless fallback if adblocker is active or container already populated
-      }
-    }
-  }, [placement, dismissed, hasSubstantialContent]);
 
   // Pick a sponsor based on placement or rotation
   const adIndex = placement === 'in-content' ? 1 : 2;
@@ -69,7 +152,10 @@ function ensureAdSenseScriptLoaded(clientId: string) {
       : AD_CONFIG.ADSENSE_SLOT_INCONTENT;
 
     return (
-      <div className={`p-2.5 sm:p-3 bg-white/95 border border-slate-200/90 rounded-2xl shadow-2xs text-center overflow-hidden relative ${className}`}>
+      <div
+        ref={containerRef}
+        className={`p-2.5 sm:p-3 bg-white/95 border border-slate-200/90 rounded-2xl shadow-2xs text-center overflow-hidden relative ${className}`}
+      >
         <div className="flex items-center justify-between px-1 mb-1.5">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
             Advertisement
@@ -83,15 +169,18 @@ function ensureAdSenseScriptLoaded(clientId: string) {
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
-        <div className="w-full flex justify-center items-center min-h-[90px] overflow-hidden">
-          <ins
-            className="adsbygoogle"
-            style={{ display: 'block', width: '100%' }}
-            data-ad-client={AD_CONFIG.ADSENSE_CLIENT_ID}
-            {...(slotId ? { 'data-ad-slot': slotId } : {})}
-            data-ad-format="auto"
-            data-full-width-responsive="true"
-          />
+        <div className="w-full block min-h-[90px] overflow-hidden">
+          {isVisibleWithWidth && (
+            <ins
+              ref={adRef}
+              className="adsbygoogle"
+              style={{ display: 'block', width: '100%' }}
+              data-ad-client={AD_CONFIG.ADSENSE_CLIENT_ID}
+              {...(slotId ? { 'data-ad-slot': slotId } : {})}
+              data-ad-format="auto"
+              data-full-width-responsive="true"
+            />
+          )}
         </div>
       </div>
     );
