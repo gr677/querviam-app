@@ -8,6 +8,13 @@ html, body, #root {
   overflow: hidden;
 }
 
+@media (max-width: 1023px) {
+  html, body, #root {
+    overscroll-behavior: none;
+    overscroll-behavior-x: none;
+  }
+}
+
 @keyframes dropFromTop {
   0% {
     transform: translateY(-100vh) scaleY(1.1);

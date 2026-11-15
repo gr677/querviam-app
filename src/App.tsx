@@ -796,11 +796,91 @@ export default function App() {
     }
   };
 
+  const isSidebarMobileOpenRef = useRef(isSidebarMobileOpen);
+  const isLibraryOpenRef = useRef(isLibraryOpen);
+  const ignoreNextPopStateRef = useRef(false);
+  isSidebarMobileOpenRef.current = isSidebarMobileOpen;
+  isLibraryOpenRef.current = isLibraryOpen;
+
+  const ensureMobileOverlayHistory = () => {
+    if (typeof window === 'undefined' || window.innerWidth >= 1024) return;
+    if (!(isSidebarMobileOpenRef.current || isLibraryOpenRef.current)) return;
+    try {
+      if (!window.history.state?.querviamMobileOverlay) {
+        window.history.pushState(
+          { ...(window.history.state || {}), querviamMobileOverlay: true },
+          ''
+        );
+      }
+    } catch {}
+  };
+
+  // On phones/tablets only (< 1024px): trap browser/Android edge-swipe Back while Options drawer or Library is open
+  // so swiping back from Google arrival dismisses the options/library overlay to the Read/Play view instead of exiting to Google.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handlePopState = () => {
+      if (ignoreNextPopStateRef.current) {
+        ignoreNextPopStateRef.current = false;
+        return;
+      }
+      if (window.innerWidth < 1024 && (isSidebarMobileOpenRef.current || isLibraryOpenRef.current)) {
+        setIsSidebarMobileOpen(false);
+        setIsLibraryOpen(false);
+      }
+    };
+
+    const handleFirstInteraction = () => {
+      ensureMobileOverlayHistory();
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('pointerdown', handleFirstInteraction, { passive: true });
+    window.addEventListener('touchstart', handleFirstInteraction, { passive: true });
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('pointerdown', handleFirstInteraction);
+      window.removeEventListener('touchstart', handleFirstInteraction);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.innerWidth >= 1024) return;
+    if (isSidebarMobileOpen || isLibraryOpen) {
+      ensureMobileOverlayHistory();
+    } else if (window.history.state?.querviamMobileOverlay) {
+      ignoreNextPopStateRef.current = true;
+      window.history.back();
+    }
+  }, [isSidebarMobileOpen, isLibraryOpen]);
+
   const phoneTouchStartXRef = useRef<number | null>(null);
   const phoneTouchStartYRef = useRef<number | null>(null);
 
+  const processPhoneHorizontalSwipe = (deltaX: number) => {
+    if (typeof window === 'undefined' || window.innerWidth >= 1024) return;
+    const currentIndex = getPhoneNavIndex();
+    if (deltaX < 0) {
+      // Swiping Left:
+      // If Build (0) or Play Options (1) drawer is open, dismiss it directly to the Read/Play window (2)
+      if (currentIndex === 0 || currentIndex === 1) {
+        handlePhoneNavChange(2);
+      } else if (currentIndex === 2) {
+        handlePhoneNavChange(3);
+      }
+    } else {
+      // Swiping Right: Move left through tabs (Library -> Read/Play -> Play Options -> Build)
+      if (currentIndex > 0) {
+        handlePhoneNavChange(currentIndex - 1);
+      }
+    }
+  };
+
   const handlePhoneTouchStart = (e: React.TouchEvent) => {
     if (window.innerWidth >= 1024) return;
+    ensureMobileOverlayHistory();
     const target = e.target as HTMLElement | null;
     if (target && target.closest('input, textarea, select, [draggable="true"], .scramble-word, .quiz-btn')) {
       return;
@@ -821,20 +901,9 @@ export default function App() {
     phoneTouchStartXRef.current = null;
     phoneTouchStartYRef.current = null;
 
-    // Minimum 45px swipe with horizontal dominance (|deltaX| > |deltaY| * 1.25)
+    // Minimum 45px swipe with horizontal dominance (|deltaX| > |deltaY| * 1.2)
     if (Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
-      const currentIndex = getPhoneNavIndex();
-      if (deltaX < 0) {
-        // Swiping Left -> Move to next button to the right (Build -> Play Options -> Read/Play -> Library)
-        if (currentIndex < 3) {
-          handlePhoneNavChange(currentIndex + 1);
-        }
-      } else {
-        // Swiping Right -> Move to previous button to the left (Library -> Read/Play -> Play Options -> Build)
-        if (currentIndex > 0) {
-          handlePhoneNavChange(currentIndex - 1);
-        }
-      }
+      processPhoneHorizontalSwipe(deltaX);
     }
   };
 
@@ -2529,7 +2598,7 @@ export default function App() {
 
       {/* Sidebar Controls */}
       <aside
-        className={`absolute lg:static inset-y-0 left-0 z-40 w-72 sm:w-80 shadow-lg lg:shadow-none flex flex-col transition-colors duration-200 ease-in-out shrink-0 h-full overflow-hidden ${
+        className={`absolute lg:static inset-y-0 left-0 z-40 w-72 sm:w-80 shadow-lg lg:shadow-none flex flex-col transition-colors duration-200 ease-in-out shrink-0 h-full overflow-hidden touch-pan-y lg:touch-auto ${
           sidebarTab === 'build'
             ? 'bg-[#fcf8f2] border-r border-[#e8dfcf] text-slate-800'
             : 'bg-[#edf8f1] border-r border-[#cbe6d4] text-slate-800'
@@ -4520,26 +4589,24 @@ export default function App() {
       <nav
         aria-label="Mobile Bottom Navigation"
         onTouchStart={(e) => {
+          e.stopPropagation();
+          ensureMobileOverlayHistory();
           const touch = e.touches[0];
           phoneTouchStartXRef.current = touch.clientX;
           phoneTouchStartYRef.current = touch.clientY;
         }}
         onTouchEnd={(e) => {
+          e.stopPropagation();
           if (phoneTouchStartXRef.current === null) return;
           const touch = e.changedTouches[0];
           const deltaX = touch.clientX - phoneTouchStartXRef.current;
           phoneTouchStartXRef.current = null;
           phoneTouchStartYRef.current = null;
           if (Math.abs(deltaX) > 30) {
-            const currentIndex = getPhoneNavIndex();
-            if (deltaX < 0 && currentIndex < 3) {
-              handlePhoneNavChange(currentIndex + 1);
-            } else if (deltaX > 0 && currentIndex > 0) {
-              handlePhoneNavChange(currentIndex - 1);
-            }
+            processPhoneHorizontalSwipe(deltaX);
           }
         }}
-        className="lg:hidden shrink-0 relative z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-2 py-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] flex items-center justify-around touch-pan-x"
+        className="lg:hidden shrink-0 relative z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-2 py-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] flex items-center justify-around touch-pan-y"
       >
         {/* 1. BUILD */}
         <button
@@ -4550,7 +4617,7 @@ export default function App() {
               ? 'text-emerald-700 bg-emerald-50 font-bold'
               : 'text-slate-600 hover:text-slate-900 font-medium'
           }`}
-          title="Build new story or change language (Swipe left to Play Options)"
+          title="Build new story or change language (Swipe left to go to Read/Play)"
         >
           <Sparkles
             className={`w-5 h-5 mb-0.5 ${
