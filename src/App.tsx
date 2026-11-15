@@ -96,6 +96,9 @@ import {
   clearStoryPracticeState,
   getLastPracticeMode,
   setLastPracticeMode,
+  getActiveStoryRef,
+  saveActiveStoryRef,
+  clearActiveStoryRef,
 } from './utils/storage';
 import { splitWordPunctuation } from './utils/textUtils';
 import { getT } from './utils/translations';
@@ -170,6 +173,8 @@ const BASE_LANGUAGES: LanguageOption[] = [
   { name: 'Urdu', nativeName: 'اردو', nativeCountry: 'پاکستان / بھارت', flag: '🇵🇰', code: 'ur-PK', greeting: 'سلام!' },
   { name: 'Vietnamese', nativeName: 'Tiếng Việt', nativeCountry: 'Việt Nam', flag: '🇻🇳', code: 'vi-VN', greeting: 'Xin chào!' },
 ];
+
+const BUILTIN_STORY_FILENAME = 'builtin_lago_sirio.json';
 
 const DEFAULT_BUILTIN_STORY: StoryData = {
   title_target: 'Una passeggiata attorno al Lago Sirio',
@@ -432,8 +437,8 @@ export default function App() {
   const [scrambleSolved, setScrambleSolved] = useState<Set<number>>(new Set());
   const [scramblePlaced, setScramblePlaced] = useState<Record<number, (number | null)[]>>({});
 
-  const [scrambleEasySolved, setScrambleEasySolved] = useState<Set<number>>(new Set());
-  const [scrambleEasyPlaced, setScrambleEasyPlaced] = useState<Record<number, (number | null)[]>>({});
+  const [scrambleVoiceSolved, setScrambleVoiceSolved] = useState<Set<number>>(new Set());
+  const [scrambleVoicePlaced, setScrambleVoicePlaced] = useState<Record<number, (number | null)[]>>({});
 
   // Quiz activity state
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
@@ -444,6 +449,8 @@ export default function App() {
 
   const [hasCelebrated, setHasCelebrated] = useState(false);
   const [readSentences, setReadSentences] = useState<Set<number>>(new Set());
+  const [practiceResetNonce, setPracticeResetNonce] = useState(0);
+  const loadedStoryKeyRef = useRef<string>('');
 
   // Unique identifier for current story to persist activities locally across sessions
   const currentStoryKey = useMemo(() => {
@@ -831,24 +838,23 @@ export default function App() {
     }
   };
 
-  const resetAllPracticeProgress = () => {
+  // Reset only in-memory React state when switching/creating/deleting stories (never wipes localStorage!)
+  const resetInMemoryPracticeState = () => {
+    setActiveSentenceIndex(null);
     setClozeSolved(new Set());
     setClozeAnswers({});
     setRevealedAnswers({});
     setMcSolved(new Set());
     setScrambleSolved(new Set());
     setScramblePlaced({});
-    setScrambleEasySolved(new Set());
-    setScrambleEasyPlaced({});
+    setScrambleVoiceSolved(new Set());
+    setScrambleVoicePlaced({});
     setQuizSolved(new Set());
     setQuizAnswers({});
     setHasCelebrated(false);
     setRecordedAudios({});
     setPronunciationScores({});
     setReadSentences(new Set());
-    if (currentStoryKey) {
-      clearStoryPracticeState(currentStoryKey);
-    }
   };
 
   const handleResetCurrentPractice = () => {
@@ -857,36 +863,44 @@ export default function App() {
       setClozeAnswers({});
       setRevealedAnswers({});
       if (currentStoryKey) {
-        saveStoryPracticeState(currentStoryKey, { clozeSolved: [], clozeAnswers: {} });
+        saveStoryPracticeState(currentStoryKey, { clozeSolved: [], clozeAnswers: {}, clozeRevealed: {}, hasCelebrated: false });
       }
     } else if (practiceMode === 'multipleChoice') {
       setMcSolved(new Set());
       if (currentStoryKey) {
-        saveStoryPracticeState(currentStoryKey, { mcSolved: [] });
+        saveStoryPracticeState(currentStoryKey, { mcSolved: [], hasCelebrated: false });
       }
-    } else if (practiceMode === 'scramble' || practiceMode === 'scrambleEasy' || practiceMode === 'scrambleVoice') {
+    } else if (practiceMode === 'scramble' || practiceMode === 'scrambleEasy') {
       setScrambleSolved(new Set());
       setScramblePlaced({});
       if (currentStoryKey) {
-        saveStoryPracticeState(currentStoryKey, { scrambleSolved: [], scramblePlaced: {} });
+        saveStoryPracticeState(currentStoryKey, { scrambleSolved: [], scramblePlaced: {}, hasCelebrated: false });
+      }
+    } else if (practiceMode === 'scrambleVoice') {
+      setScrambleVoiceSolved(new Set());
+      setScrambleVoicePlaced({});
+      if (currentStoryKey) {
+        saveStoryPracticeState(currentStoryKey, { scrambleVoiceSolved: [], scrambleVoicePlaced: {}, hasCelebrated: false });
       }
     } else if (practiceMode === 'quiz') {
       setQuizSolved(new Set());
       setQuizAnswers({});
       if (currentStoryKey) {
-        saveStoryPracticeState(currentStoryKey, { quizSolved: [], quizAnswers: {} });
+        saveStoryPracticeState(currentStoryKey, { quizSolved: [], quizAnswers: {}, hasCelebrated: false });
       }
     }
+    setPracticeResetNonce((n) => n + 1);
     setHasCelebrated(false);
   };
 
   const activeSolvedCount = useMemo(() => {
     if (practiceMode === 'cloze') return clozeSolved.size;
     if (practiceMode === 'multipleChoice') return mcSolved.size;
-    if (practiceMode === 'scramble' || practiceMode === 'scrambleEasy' || practiceMode === 'scrambleVoice') return scrambleSolved.size;
+    if (practiceMode === 'scramble' || practiceMode === 'scrambleEasy') return scrambleSolved.size;
+    if (practiceMode === 'scrambleVoice') return scrambleVoiceSolved.size;
     if (practiceMode === 'quiz') return quizSolved.size;
     return 0;
-  }, [practiceMode, clozeSolved, mcSolved, scrambleSolved, quizSolved]);
+  }, [practiceMode, clozeSolved, mcSolved, scrambleSolved, scrambleVoiceSolved, quizSolved]);
 
   // If target language is Chinese and user is on cloze or scramble mode, fall back cleanly to multiple choice
   useEffect(() => {
@@ -903,10 +917,19 @@ export default function App() {
   const sentenceElementsRef = useRef<(HTMLDivElement | null)[]>([]);
   isPlayingRef.current = isPlaying;
 
-  // Keep active sentence centered on screen during reading & record reading progress
+  // Keep active sentence centered on screen during reading & persist reading progress
   useEffect(() => {
     if (activeSentenceIndex !== null) {
-      setReadSentences((prev) => new Set(prev).add(activeSentenceIndex));
+      setReadSentences((prev) => {
+        const next = new Set(prev).add(activeSentenceIndex);
+        if (currentStoryKey && loadedStoryKeyRef.current === currentStoryKey) {
+          saveStoryPracticeState(currentStoryKey, {
+            activeSentenceIndex,
+            readSentences: Array.from(next),
+          });
+        }
+        return next;
+      });
       const el = sentenceElementsRef.current[activeSentenceIndex];
       if (el) {
         el.scrollIntoView({
@@ -916,7 +939,7 @@ export default function App() {
         });
       }
     }
-  }, [activeSentenceIndex]);
+  }, [activeSentenceIndex, currentStoryKey]);
 
   // Load Voices
   const loadVoices = () => {
@@ -1029,6 +1052,7 @@ export default function App() {
           const localKey = `shared_${Date.now()}.json`;
           saveLocalStory(localKey, shared);
           setCurrentStoryFilename(localKey);
+          saveActiveStoryRef({ filename: localKey, isLocal: true, title: shared.title_target });
 
           // For recipients of a shared link: open directly in 'practice' / 'play options' mode
           setSidebarTab('practice');
@@ -1048,8 +1072,38 @@ export default function App() {
         console.warn('Could not parse shared story from URL:', shareErr);
       }
 
-      // 2. Default initial story load: Check private device library first, then starter sample
+      // 2. Resume the exact story the user was last reading (instead of jumping to newest created story)
       try {
+        const activeRef = getActiveStoryRef();
+        if (activeRef?.filename) {
+          if (activeRef.filename === BUILTIN_STORY_FILENAME) {
+            setCurrentStory(DEFAULT_BUILTIN_STORY);
+            setCurrentStoryFilename(BUILTIN_STORY_FILENAME);
+            applyStoryMetadata(DEFAULT_BUILTIN_STORY);
+            return;
+          }
+
+          const localActive = getLocalStory(activeRef.filename);
+          if (localActive) {
+            setCurrentStory(localActive);
+            setCurrentStoryFilename(activeRef.filename);
+            applyStoryMetadata(localActive);
+            return;
+          }
+
+          try {
+            const itemRes = await fetch(`/api/library/item/${encodeURIComponent(activeRef.filename)}`);
+            if (itemRes.ok) {
+              const data = await itemRes.json();
+              setCurrentStory(data);
+              setCurrentStoryFilename(activeRef.filename);
+              applyStoryMetadata(data);
+              return;
+            }
+          } catch {}
+        }
+
+        // 3. No active story saved yet: check private device library first, then starter sample
         const localSummaries = getLocalLibrarySummaries();
         if (localSummaries.length > 0) {
           const newest = [...localSummaries].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
@@ -1057,6 +1111,7 @@ export default function App() {
           if (localData) {
             setCurrentStory(localData);
             setCurrentStoryFilename(newest.filename);
+            saveActiveStoryRef({ filename: newest.filename, isLocal: true, title: localData.title_target });
             applyStoryMetadata(localData);
             return;
           }
@@ -1072,15 +1127,18 @@ export default function App() {
               const data = await itemRes.json();
               setCurrentStory(data);
               setCurrentStoryFilename(first.filename);
+              saveActiveStoryRef({ filename: first.filename, isLocal: false, title: data.title_target });
               applyStoryMetadata(data);
               return;
             }
           }
         }
 
-        // 3. Guaranteed Fallback: Ensure screen always has rich publisher content for learners & AdSense
+        // 4. Guaranteed Fallback: Ensure screen always has rich publisher content for learners & AdSense
         setCurrentStory((prev) => {
           if (prev) return prev;
+          setCurrentStoryFilename(BUILTIN_STORY_FILENAME);
+          saveActiveStoryRef({ filename: BUILTIN_STORY_FILENAME, isLocal: false, title: DEFAULT_BUILTIN_STORY.title_target });
           applyStoryMetadata(DEFAULT_BUILTIN_STORY);
           return DEFAULT_BUILTIN_STORY;
         });
@@ -1088,6 +1146,8 @@ export default function App() {
         console.warn('Could not load starter story:', err);
         setCurrentStory((prev) => {
           if (prev) return prev;
+          setCurrentStoryFilename(BUILTIN_STORY_FILENAME);
+          saveActiveStoryRef({ filename: BUILTIN_STORY_FILENAME, isLocal: false, title: DEFAULT_BUILTIN_STORY.title_target });
           applyStoryMetadata(DEFAULT_BUILTIN_STORY);
           return DEFAULT_BUILTIN_STORY;
         });
@@ -1494,10 +1554,12 @@ export default function App() {
       setLastPracticeMode('off');
       setQuizQuestions([]);
       setIsQuizPrepOpen(false);
-      setCurrentStory(data);
-      resetAllPracticeProgress();
+      resetInMemoryPracticeState();
       const localKey = `story_${nowTs}.json`;
       saveLocalStory(localKey, data);
+      saveActiveStoryRef({ filename: localKey, isLocal: true, title: data.title_target });
+      saveStoryPracticeState(localKey, { practiceMode: 'off' });
+      setCurrentStory(data);
       setCurrentStoryFilename(localKey);
 
       // Stories are stored 100% privately in local client storage on this device
@@ -1595,6 +1657,17 @@ export default function App() {
   // Save to library
   const handleAddToLibrary = async () => {
     if (!currentStory) return;
+    const oldKey = currentStoryKey;
+    const migrateKey = (newKey: string) => {
+      if (oldKey && oldKey !== newKey) {
+        const prevState = getStoryPracticeState(oldKey);
+        if (prevState) {
+          saveStoryPracticeState(newKey, prevState);
+        }
+      }
+      saveActiveStoryRef({ filename: newKey, isLocal: true, title: currentStory.title_target });
+    };
+
     try {
       const res = await fetch('/api/library/save', {
         method: 'POST',
@@ -1604,17 +1677,20 @@ export default function App() {
       const data = await res.json();
       if (res.ok && data.success) {
         saveLocalStory(data.filename, currentStory);
+        migrateKey(data.filename);
         setCurrentStoryFilename(data.filename);
         alert(`Saved "${currentStory.title_target}" to library!`);
       } else {
         const localKey = `local_${Date.now()}.json`;
         saveLocalStory(localKey, currentStory);
+        migrateKey(localKey);
         setCurrentStoryFilename(localKey);
         alert('Saved story locally to device memory.');
       }
     } catch (err) {
       const localKey = `local_${Date.now()}.json`;
       saveLocalStory(localKey, currentStory);
+      migrateKey(localKey);
       setCurrentStoryFilename(localKey);
       alert('Saved story to device cache.');
     }
@@ -1628,13 +1704,19 @@ export default function App() {
 
     stopAudio();
 
+    if (currentStoryKey) {
+      clearStoryPracticeState(currentStoryKey);
+    }
     if (currentStoryFilename) {
       deleteLocalStory(currentStoryFilename);
+      if (getActiveStoryRef()?.filename === currentStoryFilename) {
+        clearActiveStoryRef();
+      }
     }
 
     setCurrentStory(null);
     setCurrentStoryFilename(null);
-    resetAllPracticeProgress();
+    resetInMemoryPracticeState();
   };
 
   // Pronunciation Evaluation Helpers with Phonetic Proximity Matching
@@ -2179,7 +2261,15 @@ export default function App() {
         }
         return next;
       });
-    } else if (practiceMode === 'scramble' || practiceMode === 'scrambleEasy' || practiceMode === 'scrambleVoice') {
+    } else if (practiceMode === 'scrambleVoice') {
+      setScrambleVoiceSolved((prev) => {
+        const next = new Set(prev).add(index);
+        if (currentStoryKey) {
+          saveStoryPracticeState(currentStoryKey, { scrambleVoiceSolved: Array.from(next) });
+        }
+        return next;
+      });
+    } else if (practiceMode === 'scramble' || practiceMode === 'scrambleEasy') {
       setScrambleSolved((prev) => {
         const next = new Set(prev).add(index);
         if (currentStoryKey) {
@@ -2190,21 +2280,61 @@ export default function App() {
     }
   };
 
-  // Restore persisted practice state when story loads from one session to another
+  const handleExerciseUnsolved = (index: number) => {
+    if (practiceMode === 'scrambleVoice') {
+      setScrambleVoiceSolved((prev) => {
+        const next = new Set(prev);
+        next.delete(index);
+        if (currentStoryKey) {
+          saveStoryPracticeState(currentStoryKey, { scrambleVoiceSolved: Array.from(next) });
+        }
+        return next;
+      });
+    } else if (practiceMode === 'scramble' || practiceMode === 'scrambleEasy') {
+      setScrambleSolved((prev) => {
+        const next = new Set(prev);
+        next.delete(index);
+        if (currentStoryKey) {
+          saveStoryPracticeState(currentStoryKey, { scrambleSolved: Array.from(next) });
+        }
+        return next;
+      });
+    }
+  };
+
+  // Restore persisted practice state & reading position when story loads from one session to another
   useEffect(() => {
     if (!currentStoryKey || !currentStory) return;
 
     const saved = getStoryPracticeState(currentStoryKey);
+    loadedStoryKeyRef.current = currentStoryKey;
+
     if (saved) {
       if (saved.practiceMode) {
         const mapped = saved.practiceMode === 'scrambleEasy' ? 'scramble' : saved.practiceMode;
         setPracticeMode(mapped);
+      } else {
+        setPracticeMode('off');
       }
+
+      const sentenceCount = currentStory.sentences?.length || 0;
+      const savedActiveIdx =
+        typeof saved.activeSentenceIndex === 'number' &&
+        saved.activeSentenceIndex >= 0 &&
+        saved.activeSentenceIndex < sentenceCount
+          ? saved.activeSentenceIndex
+          : null;
+      setActiveSentenceIndex(savedActiveIdx);
+      setReadSentences(new Set(saved.readSentences || []));
+
       setClozeSolved(new Set(saved.clozeSolved || []));
       setClozeAnswers(saved.clozeAnswers || {});
+      setRevealedAnswers(saved.clozeRevealed || {});
       setMcSolved(new Set(saved.mcSolved || []));
       setScrambleSolved(new Set(saved.scrambleSolved || []));
       setScramblePlaced(saved.scramblePlaced || {});
+      setScrambleVoiceSolved(new Set(saved.scrambleVoiceSolved || []));
+      setScrambleVoicePlaced(saved.scrambleVoicePlaced || {});
       if (saved.quizQuestions && saved.quizQuestions.length > 0) {
         setQuizQuestions(saved.quizQuestions);
       } else if (currentStory.quiz && currentStory.quiz.length > 0) {
@@ -2214,6 +2344,7 @@ export default function App() {
       }
       setQuizSolved(new Set(saved.quizSolved || []));
       setQuizAnswers(saved.quizAnswers || {});
+      setHasCelebrated(Boolean(saved.hasCelebrated));
     } else {
       const lastMode = getLastPracticeMode();
       // Never auto-enter or auto-generate Comprehension Quiz on a brand-new/unpracticed story;
@@ -2223,11 +2354,16 @@ export default function App() {
       } else {
         setPracticeMode('off');
       }
+      setActiveSentenceIndex(null);
+      setReadSentences(new Set());
       setClozeSolved(new Set());
       setClozeAnswers({});
+      setRevealedAnswers({});
       setMcSolved(new Set());
       setScrambleSolved(new Set());
       setScramblePlaced({});
+      setScrambleVoiceSolved(new Set());
+      setScrambleVoicePlaced({});
       if (currentStory.quiz && currentStory.quiz.length > 0) {
         setQuizQuestions(currentStory.quiz);
       } else {
@@ -2235,6 +2371,7 @@ export default function App() {
       }
       setQuizSolved(new Set());
       setQuizAnswers({});
+      setHasCelebrated(false);
     }
   }, [currentStoryKey]);
 
@@ -2287,7 +2424,7 @@ export default function App() {
       saveStoryPracticeState(currentStoryKey, { practiceMode: mode });
     }
     if (mode === 'quiz') {
-      const needsGen = quizQuestions.length !== (currentStory?.sentences?.length || 0);
+      const needsGen = quizQuestions.length === 0;
       if (needsGen) {
         handleLoadOrGenerateQuiz(true);
       }
@@ -2334,6 +2471,9 @@ export default function App() {
 
     if (isPracticeActive && totalLines > 0 && activeSolvedCount === totalLines && !hasCelebrated) {
       setHasCelebrated(true);
+      if (currentStoryKey && loadedStoryKeyRef.current === currentStoryKey) {
+        saveStoryPracticeState(currentStoryKey, { hasCelebrated: true });
+      }
       confetti({
         particleCount: 80,
         spread: 70,
@@ -2341,10 +2481,10 @@ export default function App() {
       });
       const updated = updateLearnerActivity({ storiesCompleted: 1, practiceMinutes: 2 });
       setLearnerStats(updated);
-    } else if (activeSolvedCount < totalLines) {
+    } else if (activeSolvedCount < totalLines && hasCelebrated) {
       setHasCelebrated(false);
     }
-  }, [activeSolvedCount, currentStory, practiceMode, hasCelebrated]);
+  }, [activeSolvedCount, currentStory, practiceMode, hasCelebrated, currentStoryKey]);
 
   const matchingVoices = availableVoices.filter((v) => {
     const langObj = LANGUAGES.find((l) => l.name === targetLang);
@@ -3781,7 +3921,9 @@ export default function App() {
                       ? clozeSolved.has(index)
                       : practiceMode === 'multipleChoice'
                       ? mcSolved.has(index)
-                      : practiceMode === 'scramble' || practiceMode === 'scrambleEasy' || practiceMode === 'scrambleVoice'
+                      : practiceMode === 'scrambleVoice'
+                      ? scrambleVoiceSolved.has(index)
+                      : practiceMode === 'scramble' || practiceMode === 'scrambleEasy'
                       ? scrambleSolved.has(index)
                       : false;
 
@@ -3826,6 +3968,7 @@ export default function App() {
                       {practiceMode === 'multipleChoice' ? (
                         <div>
                           <MultipleChoiceExercise
+                            key={`${currentStoryKey}-mc-${index}-${practiceResetNonce}`}
                             sentenceIndex={index}
                             sentenceText={line.target}
                             sentenceVerbs={line.verbs}
@@ -3856,25 +3999,45 @@ export default function App() {
                       ) : practiceMode === 'scramble' || practiceMode === 'scrambleEasy' || practiceMode === 'scrambleVoice' ? (
                         <div>
                           <ScrambleExercise
+                            key={`${currentStoryKey}-${practiceMode}-${index}-${practiceResetNonce}`}
                             sentenceIndex={index}
                             sentenceText={line.target}
                             isEasyMode={true}
                             isVoiceOnly={practiceMode === 'scrambleVoice'}
                             sentenceTranslation={line.en}
-                            isInitiallySolved={scrambleSolved.has(index)}
+                            isInitiallySolved={
+                              practiceMode === 'scrambleVoice'
+                                ? scrambleVoiceSolved.has(index)
+                                : scrambleSolved.has(index)
+                            }
                             baseLang={baseLang}
-                            savedPlaced={scramblePlaced[index]}
+                            savedPlaced={
+                              practiceMode === 'scrambleVoice'
+                                ? scrambleVoicePlaced[index]
+                                : scramblePlaced[index]
+                            }
                             onPlacedChange={(sIdx, placed) => {
-                              setScramblePlaced((prev) => {
-                                const next = { ...prev, [sIdx]: placed };
-                                if (currentStoryKey) {
-                                  saveStoryPracticeState(currentStoryKey, { scramblePlaced: next });
-                                }
-                                return next;
-                              });
+                              if (practiceMode === 'scrambleVoice') {
+                                setScrambleVoicePlaced((prev) => {
+                                  const next = { ...prev, [sIdx]: placed };
+                                  if (currentStoryKey) {
+                                    saveStoryPracticeState(currentStoryKey, { scrambleVoicePlaced: next });
+                                  }
+                                  return next;
+                                });
+                              } else {
+                                setScramblePlaced((prev) => {
+                                  const next = { ...prev, [sIdx]: placed };
+                                  if (currentStoryKey) {
+                                    saveStoryPracticeState(currentStoryKey, { scramblePlaced: next });
+                                  }
+                                  return next;
+                                });
+                              }
                             }}
                             targetLang={currentStory?._meta?.targetLang || targetLang}
                             onSolve={handleExerciseSolved}
+                            onUnsolve={handleExerciseUnsolved}
                             onSpeakText={(txt, customRate) => speakText(txt, undefined, 1, customRate)}
                             onWordClick={(word, sIdx) => {
                               const clean = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"'«»，。！？、“”‘’：；《》（）…—]/g, '').trim();
@@ -4026,7 +4189,13 @@ export default function App() {
                             <button
                               type="button"
                               onClick={() =>
-                                setRevealedAnswers((prev) => ({ ...prev, [index]: !prev[index] }))
+                                setRevealedAnswers((prev) => {
+                                  const next = { ...prev, [index]: !prev[index] };
+                                  if (currentStoryKey) {
+                                    saveStoryPracticeState(currentStoryKey, { clozeRevealed: next });
+                                  }
+                                  return next;
+                                })
                               }
                               className="text-xs text-slate-500 hover:text-[#008450] font-medium inline-flex items-center gap-1 cursor-pointer"
                             >
@@ -4117,7 +4286,7 @@ export default function App() {
                       )}
 
                       {/* English / Base Translation or Vocabulary Insights */}
-                      {practiceMode === 'scrambleVoice' && !scrambleSolved.has(index) ? null : (
+                      {practiceMode === 'scrambleVoice' && !scrambleVoiceSolved.has(index) ? null : (
                         <div className="text-xs sm:text-sm text-slate-600 mt-1.5 font-normal leading-relaxed">
                           {baseLang === targetLang
                             ? line.en.replace(/lexical\s*insights/gi, 'Vocabulary')
@@ -4574,20 +4743,32 @@ export default function App() {
         isOpen={isLibraryOpen}
         onClose={() => setIsLibraryOpen(false)}
         onSelectStory={(story, filename) => {
+          const isSameStory = filename === currentStoryFilename;
+          if (!isSameStory) {
+            resetInMemoryPracticeState();
+          }
           setCurrentStory(story);
           setCurrentStoryFilename(filename);
-          resetAllPracticeProgress();
+          saveActiveStoryRef({
+            filename,
+            isLocal: Boolean(getLocalStory(filename)),
+            title: story.title_target,
+          });
           // Update the title/prompt input bar to the title of the story from the library
           setPromptInput(story.title_target || story.title_en || story._meta?.prompt || '');
           applyStoryMetadata(story);
           setSidebarTab('practice');
         }}
         onStoryDeleted={(deletedFilename) => {
+          clearStoryPracticeState(deletedFilename);
+          if (getActiveStoryRef()?.filename === deletedFilename) {
+            clearActiveStoryRef();
+          }
           if (currentStoryFilename === deletedFilename) {
             stopAudio();
             setCurrentStory(null);
             setCurrentStoryFilename(null);
-            resetAllPracticeProgress();
+            resetInMemoryPracticeState();
           }
         }}
         onShareStory={(story) => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useId } from 'react';
+import React, { useState, useEffect, useId, useRef } from 'react';
 import { Volume2, RotateCcw, Headphones, HelpCircle, Sparkles } from 'lucide-react';
 import { getT } from '../utils/translations';
 import { segmentWords } from '../utils/textUtils';
@@ -14,6 +14,7 @@ interface ScrambleExerciseProps {
   baseLang?: string;
   savedPlaced?: (number | null)[];
   onSolve: (index: number) => void;
+  onUnsolve?: (index: number) => void;
   onPlacedChange?: (index: number, placed: (number | null)[]) => void;
   onSpeakText: (text: string, customRate?: number) => void;
   onWordClick?: (word: string, sentenceIndex: number) => void;
@@ -35,6 +36,7 @@ export const ScrambleExercise: React.FC<ScrambleExerciseProps> = ({
   baseLang = 'English',
   savedPlaced,
   onSolve,
+  onUnsolve,
   onPlacedChange,
   onSpeakText,
   onWordClick,
@@ -51,9 +53,10 @@ export const ScrambleExercise: React.FC<ScrambleExerciseProps> = ({
 
   const [draggedPos, setDraggedPos] = useState<number | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
+  const hasUserInteractedRef = useRef(false);
 
   // Initialize or rescramble
-  const initExercise = () => {
+  const initExercise = (forceClear = false) => {
     const rawTokens = segmentWords(sentenceText, targetLang);
     const wordList: WordTile[] = rawTokens.map((text, originalPos) => ({ text, originalPos }));
     let initialOrder = wordList.map(w => w.originalPos);
@@ -73,26 +76,38 @@ export const ScrambleExercise: React.FC<ScrambleExerciseProps> = ({
     setWords(wordList);
     setOrder(initialOrder);
 
-    if (isInitiallySolved) {
-      const solvedArr = wordList.map((_, i) => i);
-      setPlaced(solvedArr);
-      setIsSolved(true);
-      setIsWrong(false);
-      setFeedback('✅ Perfect! Well done.');
-    } else if (savedPlaced && savedPlaced.length === wordList.length) {
-      setPlaced(savedPlaced);
-      const isComplete = !savedPlaced.includes(null) && savedPlaced.every((pos, i) => {
-        if (pos === null) return false;
-        return wordList[pos]?.text?.trim().toLowerCase() === wordList[i]?.text?.trim().toLowerCase();
-      });
-      setIsSolved(isComplete);
-      setIsWrong(!savedPlaced.includes(null) && !isComplete);
-      setFeedback(isComplete ? '✅ Perfect! Well done.' : '');
-    } else {
+    if (forceClear) {
+      hasUserInteractedRef.current = true;
       setPlaced(new Array(wordList.length).fill(null));
       setIsSolved(false);
       setIsWrong(false);
       setFeedback('');
+      if (isSolved || isInitiallySolved) {
+        onUnsolve?.(sentenceIndex);
+      }
+    } else {
+      hasUserInteractedRef.current = false;
+      if (isInitiallySolved) {
+        const solvedArr = wordList.map((_, i) => i);
+        setPlaced(solvedArr);
+        setIsSolved(true);
+        setIsWrong(false);
+        setFeedback(t.perfectWellDone);
+      } else if (savedPlaced && savedPlaced.length === wordList.length) {
+        setPlaced(savedPlaced);
+        const isComplete = !savedPlaced.includes(null) && savedPlaced.every((pos, i) => {
+          if (pos === null) return false;
+          return wordList[pos]?.text?.trim().toLowerCase() === wordList[i]?.text?.trim().toLowerCase();
+        });
+        setIsSolved(isComplete);
+        setIsWrong(!savedPlaced.includes(null) && !isComplete);
+        setFeedback(isComplete ? t.perfectWellDone : '');
+      } else {
+        setPlaced(new Array(wordList.length).fill(null));
+        setIsSolved(false);
+        setIsWrong(false);
+        setFeedback('');
+      }
     }
 
     setDraggedPos(null);
@@ -100,8 +115,30 @@ export const ScrambleExercise: React.FC<ScrambleExerciseProps> = ({
   };
 
   useEffect(() => {
-    initExercise();
+    initExercise(false);
   }, [sentenceText, isEasyMode]);
+
+  // Sync hydrated state from parent if it arrives after mount (without clobbering localStorage)
+  useEffect(() => {
+    if (words.length === 0 || hasUserInteractedRef.current) return;
+
+    if (isInitiallySolved) {
+      const solvedArr = words.map((_, i) => i);
+      setPlaced(solvedArr);
+      setIsSolved(true);
+      setIsWrong(false);
+      setFeedback(t.perfectWellDone);
+    } else if (savedPlaced && savedPlaced.length === words.length) {
+      setPlaced(savedPlaced);
+      const isComplete = !savedPlaced.includes(null) && savedPlaced.every((pos, i) => {
+        if (pos === null) return false;
+        return words[pos]?.text?.trim().toLowerCase() === words[i]?.text?.trim().toLowerCase();
+      });
+      setIsSolved(isComplete);
+      setIsWrong(!savedPlaced.includes(null) && !isComplete);
+      setFeedback(isComplete ? t.perfectWellDone : '');
+    }
+  }, [isInitiallySolved, savedPlaced, words]);
 
   // Helper to check if placed tile matches the target slot word (handles duplicate words gracefully)
   const isMatchForSlot = (tilePos: number | null, slotIdx: number): boolean => {
@@ -112,8 +149,11 @@ export const ScrambleExercise: React.FC<ScrambleExerciseProps> = ({
     return tileWord.trim().toLowerCase() === slotTargetWord.trim().toLowerCase();
   };
 
-  // Check victory condition whenever placed changes
+  // Persist & check victory condition ONLY after genuine user interaction
   useEffect(() => {
+    if (!hasUserInteractedRef.current) {
+      return;
+    }
     if (placed.length > 0) {
       onPlacedChange?.(sentenceIndex, placed);
     }
@@ -169,6 +209,7 @@ export const ScrambleExercise: React.FC<ScrambleExerciseProps> = ({
     // Prevent overwriting a locked correct tile in easy mode
     if (isEasyMode && placed[targetSlot] !== null && isMatchForSlot(placed[targetSlot], targetSlot)) return;
 
+    hasUserInteractedRef.current = true;
     setPlaced((prev) => {
       const next = [...prev];
       const existingInTarget = next[targetSlot];
@@ -191,6 +232,7 @@ export const ScrambleExercise: React.FC<ScrambleExerciseProps> = ({
     // In easy mode, locked matching tiles cannot be removed
     if (isEasyMode && isMatchForSlot(pos, slotIndex)) return;
 
+    hasUserInteractedRef.current = true;
     setPlaced((prev) => {
       const next = [...prev];
       next[slotIndex] = null;
@@ -455,7 +497,7 @@ export const ScrambleExercise: React.FC<ScrambleExerciseProps> = ({
 
           <button
             type="button"
-            onClick={initExercise}
+            onClick={() => initExercise(true)}
             className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-md transition"
             title={t.rescramble}
           >

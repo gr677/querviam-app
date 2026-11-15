@@ -5,6 +5,7 @@ const STATS_STORAGE_KEY = 'impara_learner_stats_v1';
 const SRS_STORAGE_KEY = 'impara_srs_cards_v1';
 const PRACTICE_STATE_KEY = 'impara_practice_state_v1';
 const LAST_PRACTICE_MODE_KEY = 'impara_last_practice_mode_v1';
+const LAST_ACTIVE_STORY_KEY = 'impara_last_active_story_v1';
 
 export function getLocalStories(): Record<string, StoryData> {
   try {
@@ -221,12 +222,17 @@ export function rateSRSCard(
 // ----------------- Practice Activities State Persistence Across Sessions -----------------
 export interface StoryPracticeState {
   practiceMode?: PracticeMode;
+  activeSentenceIndex?: number | null;
+  readSentences?: number[];
   clozeSolved?: number[];
   clozeAnswers?: Record<number, string>;
+  clozeRevealed?: Record<number, boolean>;
   mcSolved?: number[];
   mcSelectedOptions?: Record<number, number>;
   scrambleSolved?: number[];
   scramblePlaced?: Record<number, (number | null)[]>;
+  scrambleVoiceSolved?: number[];
+  scrambleVoicePlaced?: Record<number, (number | null)[]>;
   quizQuestions?: QuizQuestion[];
   quizSolved?: number[];
   quizAnswers?: Record<number, number>; // questionIdx -> selectedOptionIdx
@@ -289,3 +295,38 @@ export function setLastPracticeMode(mode: PracticeMode): void {
   } catch {}
 }
 
+export interface ActiveStoryRef {
+  filename: string;
+  isLocal?: boolean;
+  title?: string;
+}
+
+export function getActiveStoryRef(): ActiveStoryRef | null {
+  try {
+    const raw = localStorage.getItem(LAST_ACTIVE_STORY_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.filename === 'string' && parsed.filename.trim().length > 0) {
+      return parsed as ActiveStoryRef;
+    }
+    return null;
+  } catch (err) {
+    console.warn('Error reading active story reference:', err);
+    return null;
+  }
+}
+
+export function saveActiveStoryRef(ref: ActiveStoryRef): void {
+  try {
+    if (!ref || !ref.filename) return;
+    localStorage.setItem(LAST_ACTIVE_STORY_KEY, JSON.stringify(ref));
+  } catch (err) {
+    console.warn('Error saving active story reference:', err);
+  }
+}
+
+export function clearActiveStoryRef(): void {
+  try {
+    localStorage.removeItem(LAST_ACTIVE_STORY_KEY);
+  } catch {}
+}
