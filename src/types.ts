@@ -86,6 +86,14 @@ export interface GrammarBite {
   tip?: string;
 }
 
+export interface StoryDictionaryEntry {
+  word: string;
+  baseForm?: string;
+  meaning: string;
+  partOfSpeech?: string;
+  sentenceIndex: number;
+}
+
 export interface StoryData {
   title_target: string;
   title_en: string;
@@ -94,6 +102,7 @@ export interface StoryData {
   _meta?: StoryMeta;
   quiz?: QuizQuestion[];
   grammarBites?: GrammarBite[];
+  dictionaries?: Record<string, StoryDictionaryEntry[]>;
   createdAt?: number;
 }
 

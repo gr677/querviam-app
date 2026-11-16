@@ -75,6 +75,7 @@ import { ShareStoryModal } from './components/ShareStoryModal';
 import { AnalyticsModal } from './components/AnalyticsModal';
 import { ContextualMicroHint } from './components/ContextualMicroHint';
 import { StoryInspectorModal } from './components/StoryInspectorModal';
+import { StoryDictionaryModal } from './components/StoryDictionaryModal';
 import { ComicGuideTour } from './components/ComicGuideTour';
 import { LegalModal, LegalTab } from './components/LegalModal';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
@@ -738,6 +739,7 @@ export default function App() {
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [isFlashcardsOpen, setIsFlashcardsOpen] = useState(false);
   const [isGrammarOpen, setIsGrammarOpen] = useState(false);
+  const [isDictionaryOpen, setIsDictionaryOpen] = useState(false);
   const [isStudySheetOpen, setIsStudySheetOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isInstallGuideOpen, setIsInstallGuideOpen] = useState(false);
@@ -2883,6 +2885,18 @@ export default function App() {
                         <Share2 className="w-3.5 h-3.5 text-emerald-100" />
                         <span>{t.shareStory}</span>
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsDictionaryOpen(true)}
+                        className="col-span-2 p-2 rounded-xl bg-teal-50 hover:bg-teal-100/80 border border-teal-200 text-left text-xs font-bold text-teal-900 transition cursor-pointer flex items-center justify-between gap-1.5 shadow-2xs"
+                        title={t.storyDictionaryTitle}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <BookOpen className="w-3.5 h-3.5 text-teal-700" />
+                          <span>{t.storyDictionaryTitle}</span>
+                        </span>
+                        <span className="text-[10px] font-semibold text-teal-700 opacity-80">A–Z</span>
+                      </button>
                     </div>
                   </div>
                 )}
@@ -3848,6 +3862,17 @@ export default function App() {
                     <span>{t.cards}</span>
                   </button>
 
+                  {/* 4b. Story Word Dictionary */}
+                  <button
+                    type="button"
+                    onClick={() => setIsDictionaryOpen(true)}
+                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-xl transition cursor-pointer shadow-2xs"
+                    title={t.storyDictionaryTitle}
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-teal-700" />
+                    <span>{t.storyDictionary}</span>
+                  </button>
+
                   {/* 5. Printable Study Sheet */}
                   <button
                     type="button"
@@ -3969,6 +3994,7 @@ export default function App() {
                   onResetQuiz={handleResetQuiz}
                   onRegenerateQuestions={() => handleLoadOrGenerateQuiz(true)}
                   onExitQuiz={() => handleSelectPracticeMode('off')}
+                  onOpenDictionary={() => setIsDictionaryOpen(true)}
                   onSpeak={(txt) => speakText(txt)}
                   onSpeakSentence={(idx) => repeatSentence(idx)}
                   onWordClick={(word, sIdx, questionContext) => {
@@ -4799,6 +4825,37 @@ export default function App() {
         baseLang={baseLang}
         difficulty={difficulty}
         tense={tense}
+      />
+
+      {/* Lazy, Cached Story Word Dictionary Modal */}
+      <StoryDictionaryModal
+        isOpen={isDictionaryOpen}
+        onClose={() => setIsDictionaryOpen(false)}
+        story={currentStory}
+        storyKey={currentStoryKey}
+        targetLang={currentStory?._meta?.targetLang || targetLang}
+        baseLang={baseLang}
+        customHighlights={customHighlights}
+        onSpeak={(txt) => speakText(txt)}
+        onSaveToFlashcards={(entry) => {
+          const cleanLower = entry.word.toLowerCase().trim();
+          const existing = customHighlights.find((h) => h.word.toLowerCase().trim() === cleanLower);
+          if (existing) {
+            setCustomHighlights((prev) => prev.filter((h) => h.id !== existing.id));
+          } else {
+            setCustomHighlights((prev) => [
+              ...prev,
+              {
+                id: `${Date.now()}_${cleanLower}`,
+                word: entry.word,
+                sentenceIndex: entry.sentenceIndex,
+                translation: entry.meaning,
+                color: 'amber',
+                note: entry.baseForm ? `${entry.partOfSpeech || ''} (${entry.baseForm})`.trim() : entry.partOfSpeech,
+              },
+            ]);
+          }
+        }}
       />
 
       {/* Custom Vocabulary Highlighter Popover */}

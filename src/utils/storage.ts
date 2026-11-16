@@ -1,4 +1,4 @@
-import { StoryData, LibraryItemSummary, LearnerStats, SRSCardData, PracticeMode, QuizQuestion } from '../types';
+import { StoryData, LibraryItemSummary, LearnerStats, SRSCardData, PracticeMode, QuizQuestion, StoryDictionaryEntry } from '../types';
 
 const LOCAL_STORAGE_KEY = 'impara_cached_stories_v1';
 const STATS_STORAGE_KEY = 'impara_learner_stats_v1';
@@ -6,6 +6,7 @@ const SRS_STORAGE_KEY = 'impara_srs_cards_v1';
 const PRACTICE_STATE_KEY = 'impara_practice_state_v1';
 const LAST_PRACTICE_MODE_KEY = 'impara_last_practice_mode_v1';
 const LAST_ACTIVE_STORY_KEY = 'impara_last_active_story_v1';
+const STORY_DICT_CACHE_KEY = 'impara_story_dictionary_v1';
 
 export function getLocalStories(): Record<string, StoryData> {
   try {
@@ -330,3 +331,43 @@ export function clearActiveStoryRef(): void {
     localStorage.removeItem(LAST_ACTIVE_STORY_KEY);
   } catch {}
 }
+
+// ----------------- Story Dictionary Cache (0-Token Persistence) -----------------
+function buildDictionaryCacheId(storyKey: string, baseLang: string): string {
+  return `${(storyKey || 'default').trim()}__${(baseLang || 'English').trim().toLowerCase()}`;
+}
+
+export function getCachedStoryDictionary(storyKey: string, baseLang: string): StoryDictionaryEntry[] | null {
+  try {
+    if (!storyKey) return null;
+    const raw = localStorage.getItem(STORY_DICT_CACHE_KEY);
+    if (!raw) return null;
+    const all = JSON.parse(raw);
+    const id = buildDictionaryCacheId(storyKey, baseLang);
+    return Array.isArray(all[id]) ? (all[id] as StoryDictionaryEntry[]) : null;
+  } catch (err) {
+    console.warn('Error reading story dictionary cache:', err);
+    return null;
+  }
+}
+
+export function saveCachedStoryDictionary(storyKey: string, baseLang: string, entries: StoryDictionaryEntry[]): void {
+  try {
+    if (!storyKey || !Array.isArray(entries)) return;
+    const raw = localStorage.getItem(STORY_DICT_CACHE_KEY);
+    const all = raw ? JSON.parse(raw) : {};
+    const id = buildDictionaryCacheId(storyKey, baseLang);
+    all[id] = entries;
+    // Cap stored dictionary keys to last 40 stories to avoid unbounded localStorage growth
+    const keys = Object.keys(all);
+    if (keys.length > 40) {
+      for (const oldKey of keys.slice(0, keys.length - 40)) {
+        delete all[oldKey];
+      }
+    }
+    localStorage.setItem(STORY_DICT_CACHE_KEY, JSON.stringify(all));
+  } catch (err) {
+    console.warn('Error saving story dictionary cache:', err);
+  }
+}
+

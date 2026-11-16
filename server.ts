@@ -1,4 +1,5 @@
 import express from 'express';
+import http from 'http';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
@@ -1750,6 +1751,7 @@ function classifyGeminiError(err: any): {
 
 // In-Memory Story Cache to prevent redundant Gemini API calls and token waste
 const storyCache = new Map<string, any>();
+const storyDictionaryCache = new Map<string, any>();
 const MAX_CACHE_ENTRIES = 150;
 
 function getCacheKey(obj: Record<string, any>): string {
@@ -1761,6 +1763,7 @@ function getCacheKey(obj: Record<string, any>): string {
 
 async function startServer() {
   const app = express();
+  const httpServer = http.createServer(app);
   app.set('trust proxy', 1);
   app.disable('x-powered-by');
 
@@ -3040,6 +3043,160 @@ CRITICAL REQUIREMENTS:
     }
   });
 
+  // Compact Batch Story Dictionary Endpoint (Lazy, Cached, Minimal Tokens)
+  app.post('/api/story-dictionary', aiRateLimiter(25, 60000), async (req, res) => {
+    try {
+      const {
+        sentences = [],
+        words = [],
+        targetLang = 'Italian',
+        baseLang = 'English',
+      } = req.body || {};
+
+      if (!Array.isArray(words) || words.length === 0) {
+        return res.json({ entries: [] });
+      }
+
+      // Cap batch size per call to keep output tokens tight & fast
+      const batchWords = words
+        .slice(0, 110)
+        .map((item: any) => ({
+          w: String(item?.w ?? item?.word ?? '').trim(),
+          s: Number.isFinite(Number(item?.s ?? item?.sentenceIndex)) ? Number(item?.s ?? item?.sentenceIndex) : 0,
+        }))
+        .filter((item) => item.w.length > 0);
+
+      if (batchWords.length === 0) {
+        return res.json({ entries: [] });
+      }
+
+      const referencedIndices = Array.from(new Set(batchWords.map((b) => b.s)));
+      const contextLines = referencedIndices
+        .filter((idx) => sentences[idx] && typeof sentences[idx]?.target === 'string')
+        .map((idx) => {
+          const sObj = sentences[idx];
+          const enHint = sObj.en ? ` (${String(sObj.en).slice(0, 140)})` : '';
+          return `[${idx}] ${String(sObj.target).slice(0, 220)}${enHint}`;
+        });
+
+      const cacheHash = crypto
+        .createHash('sha1')
+        .update(JSON.stringify({ targetLang, baseLang, batchWords, contextLines }))
+        .digest('hex');
+
+      if (storyDictionaryCache.has(cacheHash)) {
+        return res.json({ entries: storyDictionaryCache.get(cacheHash), cached: true });
+      }
+
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        return res.json({
+          entries: batchWords.map((b) => ({
+            word: b.w,
+            baseForm: '',
+            meaning: b.w,
+            partOfSpeech: 'other',
+            sentenceIndex: b.s,
+          })),
+        });
+      }
+
+      const ai = new GoogleGenAI({
+        httpOptions: { headers: { 'User-Agent': 'aistudio-build' } },
+      });
+
+      const isSameLang = targetLang.trim().toLowerCase() === baseLang.trim().toLowerCase();
+      const wordListCompact = batchWords.map((b) => `${b.w}@${b.s}`).join(', ');
+
+      const prompt = `Translate each ${targetLang} word into ${baseLang} ONLY according to how it is used in its referenced sentence below.
+${isSameLang ? `Note: Both languages are ${targetLang}; give a crisp 2-5 word synonym/definition in ${baseLang}.` : ''}
+Context sentences:
+${contextLines.join('\n')}
+
+Words (format word@sentenceIndex):
+${wordListCompact}
+
+Rules:
+- Return one entry per requested word in the same order.
+- "w": exact requested word.
+- "b": dictionary base/lemma form (infinitive for verbs, singular for nouns) ONLY if different from "w", otherwise "".
+- "m": concise contextual translation in ${baseLang} as used in sentence [s] (1 to 5 words, never leave blank or repeat foreign word unless proper noun).
+- "p": one short tag from: noun, verb, adj, adv, prep, conj, pron, art, num, other.
+- "s": integer sentenceIndex from @s.`;
+
+      const schema = {
+        type: Type.OBJECT,
+        properties: {
+          entries: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                w: { type: Type.STRING },
+                b: { type: Type.STRING },
+                m: { type: Type.STRING },
+                p: { type: Type.STRING },
+                s: { type: Type.INTEGER },
+              },
+              required: ['w', 'm', 'p', 's'],
+            },
+          },
+        },
+        required: ['entries'],
+      };
+
+      const candidateModels = ['gemini-3.1-flash-lite', 'gemini-flash-latest', 'gemini-2.5-flash'];
+      let result: any = null;
+      for (const modelName of candidateModels) {
+        try {
+          result = await ai.models.generateContent({
+            model: modelName,
+            contents: prompt,
+            config: {
+              responseMimeType: 'application/json',
+              responseSchema: schema,
+              temperature: 0.15,
+              maxOutputTokens: 4096,
+            },
+          });
+          if (result?.text) break;
+        } catch (err) {
+          console.warn(`[story-dictionary] Model ${modelName} failed:`, (err as any)?.message || err);
+        }
+      }
+
+      if (result?.text) {
+        let clean = result.text.trim();
+        if (clean.startsWith('```json')) clean = clean.replace(/^```json\s*/, '').replace(/```\s*$/, '').trim();
+        if (clean.startsWith('```')) clean = clean.replace(/^```\s*/, '').replace(/```\s*$/, '').trim();
+        const parsed = JSON.parse(clean);
+        const normalized = Array.isArray(parsed?.entries)
+          ? parsed.entries.map((e: any) => ({
+              word: String(e?.w || '').trim(),
+              baseForm: e?.b && String(e.b).trim().toLowerCase() !== String(e?.w || '').trim().toLowerCase()
+                ? String(e.b).trim()
+                : undefined,
+              meaning: String(e?.m || '').trim(),
+              partOfSpeech: String(e?.p || 'other').toLowerCase().trim(),
+              sentenceIndex: Number.isFinite(Number(e?.s)) ? Number(e.s) : 0,
+            })).filter((e: any) => e.word && e.meaning)
+          : [];
+
+        if (storyDictionaryCache.size >= MAX_CACHE_ENTRIES) {
+          const oldest = storyDictionaryCache.keys().next().value;
+          if (oldest) storyDictionaryCache.delete(oldest);
+        }
+        storyDictionaryCache.set(cacheHash, normalized);
+        return res.json({ entries: normalized });
+      }
+
+      return res.status(502).json({ error: 'Unable to build dictionary entries right now.' });
+    } catch (err: any) {
+      console.error('Story Dictionary Error:', err);
+      res.status(500).json({ error: err?.message || 'Story dictionary generation error' });
+    }
+  });
+
   // Known curated starter sample files (read-only built-in examples)
   const STARTER_SAMPLE_FILES = new Set([
     'a_walk_around_lago_sirio.json',
@@ -3539,12 +3696,14 @@ CRITICAL REQUIREMENTS:
 
   if (!isProd) {
     const { createServer: createViteServer } = await import('vite');
+    const disableHmr = process.env.DISABLE_HMR === 'true';
     const vite = await createViteServer({
       server: {
         middlewareMode: true,
         allowedHosts: true,
-        hmr: process.env.DISABLE_HMR !== 'true',
-        watch: process.env.DISABLE_HMR === 'true' ? null : {}
+        hmr: disableHmr ? false : { server: httpServer },
+        ws: disableHmr ? false : undefined,
+        watch: disableHmr ? null : {},
       },
       appType: 'spa',
     });
@@ -3558,11 +3717,11 @@ CRITICAL REQUIREMENTS:
     });
   }
 
-  const server = app.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`Impara Chromebook/Tablet app running at http://0.0.0.0:${PORT}`);
   });
 
-  server.timeout = 180000;
+  httpServer.timeout = 180000;
 }
 
 startServer().catch(err => {

@@ -727,6 +727,29 @@ export interface TranslationDictionary {
   footerCopyright: (year: number) => string;
   legalModalTitle: string;
   legalModalSubtitle: string;
+
+  // Story Dictionary Modal
+  storyDictionary: string;
+  storyDictionaryTitle: string;
+  storyDictionarySubtitle: string;
+  reviewStoryDictionary: string;
+  loadingDictionary: string;
+  searchDictionaryPlaceholder: string;
+  allPartsOfSpeech: string;
+  posNoun: string;
+  posVerb: string;
+  posAdj: string;
+  posOther: string;
+  sortStoryOrder: string;
+  sortAZ: string;
+  baseFormLabel: string;
+  sentenceRef: (num: number) => string;
+  addToFlashcards: string;
+  addedToFlashcards: string;
+  cachedOfflineLabel: string;
+  loadMoreWordsBtn: (count: number) => string;
+  noDictionaryMatches: string;
+  wordsCountBadge: (count: number) => string;
 }
 
 export const RTL_LANGUAGES = new Set(['arabic', 'hebrew', 'urdu']);
@@ -1557,4 +1580,27 @@ export const ENGLISH_TRANSLATIONS: TranslationDictionary = {
   footerCopyright: (year) => `© ${year} Querviam • Gordon Robb • All rights reserved`,
   legalModalTitle: 'Legal, Privacy & Publisher Info',
   legalModalSubtitle: 'Google AdSense policy compliance, privacy protection, and transparent operations',
+
+  // Story Dictionary Modal
+  storyDictionary: 'Dictionary',
+  storyDictionaryTitle: 'Story Word Dictionary',
+  storyDictionarySubtitle: 'Every word in this story with its exact meaning in context',
+  reviewStoryDictionary: 'Review Story Dictionary',
+  loadingDictionary: 'Building contextual word dictionary...',
+  searchDictionaryPlaceholder: 'Search word or translation...',
+  allPartsOfSpeech: 'All',
+  posNoun: 'Nouns',
+  posVerb: 'Verbs',
+  posAdj: 'Adjectives',
+  posOther: 'Other',
+  sortStoryOrder: 'Story Order',
+  sortAZ: 'A–Z',
+  baseFormLabel: 'Base:',
+  sentenceRef: (num) => `Sentence ${num}`,
+  addToFlashcards: 'Add to Flashcards',
+  addedToFlashcards: 'In Flashcards ✓',
+  cachedOfflineLabel: 'Cached',
+  loadMoreWordsBtn: (count) => `Load ${count} remaining words`,
+  noDictionaryMatches: 'No words match your search or filter.',
+  wordsCountBadge: (count) => `${count} words`,
 };

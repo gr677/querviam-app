@@ -32,6 +32,7 @@ interface ComprehensionQuizViewProps {
   onSpeakSentence?: (index: number) => void;
   onWordClick?: (word: string, sentenceIndex: number, sentenceContext?: string) => void;
   onExitQuiz?: () => void;
+  onOpenDictionary?: () => void;
 }
 
 export const ComprehensionQuizView: React.FC<ComprehensionQuizViewProps> = ({
@@ -47,6 +48,7 @@ export const ComprehensionQuizView: React.FC<ComprehensionQuizViewProps> = ({
   onSpeak,
   onWordClick,
   onExitQuiz,
+  onOpenDictionary,
 }) => {
   const t = getT(baseLang);
   const targetIsRtl = isRtlLanguage(targetLang);
@@ -168,6 +170,18 @@ export const ComprehensionQuizView: React.FC<ComprehensionQuizViewProps> = ({
               <RefreshCw className="w-3.5 h-3.5 text-emerald-700" />
               <span>{t.newQuestionsBtn}</span>
             </button>
+
+            {onOpenDictionary && (
+              <button
+                type="button"
+                onClick={onOpenDictionary}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-300 rounded-xl transition cursor-pointer shadow-2xs active:scale-95"
+                title={t.storyDictionaryTitle}
+              >
+                <BookOpen className="w-3.5 h-3.5 text-teal-700" />
+                <span>{t.storyDictionary}</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -232,7 +246,17 @@ export const ComprehensionQuizView: React.FC<ComprehensionQuizViewProps> = ({
           <p className="text-xs sm:text-sm text-emerald-100 max-w-md mx-auto">
             {t.challengeMasteredDesc}
           </p>
-          <div className="flex items-center justify-center gap-3 pt-2">
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            {onOpenDictionary && (
+              <button
+                type="button"
+                onClick={onOpenDictionary}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-300 text-amber-950 font-black text-xs rounded-xl shadow-md hover:bg-amber-200 transition cursor-pointer"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>{t.reviewStoryDictionary}</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={onResetQuiz}
