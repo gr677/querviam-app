@@ -256,7 +256,7 @@ export const SpeedRunTimer: React.FC<SpeedRunTimerProps> = ({
                 className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs transition cursor-pointer shadow-md active:scale-95"
               >
                 <Share2 className="w-4 h-4" />
-                <span>Challenge a friend to beat your time!</span>
+                <span>{t.challengeFriendTimerBtn}</span>
               </button>
             )}
 

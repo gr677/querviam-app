@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { X, ChevronRight, ChevronLeft, Sparkles, Check, HelpCircle, Eye, EyeOff } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, ChevronRight, ChevronLeft, Check, Eye, EyeOff } from 'lucide-react';
+import { getT } from '../utils/translations';
 
 export type TourMode = 'build' | 'practice';
 
@@ -8,95 +9,34 @@ interface ComicGuideTourProps {
   onClose: () => void;
   currentMode: TourMode;
   onSelectMode?: (mode: TourMode) => void;
+  baseLang?: string;
 }
 
-interface TourStep {
+interface TourStepMeta {
   id: string;
   targetId: string;
+  arrowDirection: 'left' | 'top' | 'right' | 'bottom';
+}
+
+interface TourStep extends TourStepMeta {
   badge: string;
   title: string;
   desc: string;
   tip: string;
-  actionText?: string;
-  arrowDirection: 'left' | 'top' | 'right' | 'bottom';
 }
 
-const BUILD_STEPS: TourStep[] = [
-  {
-    id: 'build-languages',
-    targetId: 'tour-build-languages',
-    badge: 'STEP 1',
-    title: '🎯 Target Language & I Speak',
-    desc: 'Pick your native language and the language you want to master. Querviam adapts all vocabulary, grammar insights, and native audio to this exact language pair.',
-    tip: 'Tip: You can hit "⇄ Flip" anytime to practice in reverse!',
-    arrowDirection: 'left',
-  },
-  {
-    id: 'build-topic',
-    targetId: 'tour-build-topic',
-    badge: 'STEP 2',
-    title: '💡 Story Topic or Seed Idea',
-    desc: 'Type any seed idea — like "Ordering coffee in Florence", "A time machine in Kyoto", or "Space exploration". Or tap "Speak" to brainstorm out loud!',
-    tip: 'Tip: Even a 2-word topic produces a rich, immersive story.',
-    arrowDirection: 'left',
-  },
-  {
-    id: 'build-difficulty',
-    targetId: 'tour-build-difficulty',
-    badge: 'STEP 3',
-    title: '📊 Difficulty & Specialist Mastery',
-    desc: 'Choose from Introduction (A1) up to Advanced (C1-C2). Select "Master (C2+)" to unlock 20+ specialized professional fields like Law, Medicine, or Classical Literature.',
-    tip: 'Tip: Beginners get simple sentence structures; Master includes idiomatic nuances.',
-    arrowDirection: 'left',
-  },
-  {
-    id: 'build-format',
-    targetId: 'tour-build-format',
-    badge: 'STEP 4',
-    title: '📖 Format & Fact vs Fiction',
-    desc: 'Select a solo narrative Story or a dynamic 2-person Dialogue. Pick "Non-Fiction" for real-world factual insights, or "Fiction" for imaginative adventures!',
-    tip: 'Tip: Dialogues feature dual speaker voices (Speaker A & B)!',
-    arrowDirection: 'left',
-  },
-  {
-    id: 'build-generate',
-    targetId: 'tour-build-generate',
-    badge: 'STEP 5',
-    title: '🚀 Hit Create Story!',
-    desc: 'Ready? Click "Create Story" to generate your custom lesson with synchronized audio, phrase-by-phrase translations, and instant interactive exercises.',
-    tip: 'Tip: Once generated, stories can be shared with friends via 1-click links!',
-    arrowDirection: 'left',
-  },
+const BUILD_STEP_META: TourStepMeta[] = [
+  { id: 'build-languages', targetId: 'tour-build-languages', arrowDirection: 'left' },
+  { id: 'build-topic', targetId: 'tour-build-topic', arrowDirection: 'left' },
+  { id: 'build-difficulty', targetId: 'tour-build-difficulty', arrowDirection: 'left' },
+  { id: 'build-format', targetId: 'tour-build-format', arrowDirection: 'left' },
+  { id: 'build-generate', targetId: 'tour-build-generate', arrowDirection: 'left' },
 ];
 
-const PRACTICE_STEPS: TourStep[] = [
-  {
-    id: 'practice-activities',
-    targetId: 'tour-practice-activities',
-    badge: 'PRACTICE 1',
-    title: '🎮 Interactive Learning Activities',
-    desc: 'Reinforce what you learn! Choose from Spelling (Fill in the blanks), Multiple Choice, Sentence Scramble, or audio Dictation mode.',
-    tip: 'Tip: Each mode tests a different cognitive skill (listening, spelling, grammar).',
-    arrowDirection: 'left',
-  },
-  {
-    id: 'practice-voice',
-    targetId: 'tour-practice-voice',
-    badge: 'PRACTICE 2',
-    title: '🎧 Speech Rate & Voice Options',
-    desc: 'Control playback speed (slow down to 0.7x for crystal-clear phonetics), adjust sentence pauses, or toggle Studio HD neural voices.',
-    tip: 'Tip: Use the pause slider to give yourself time to repeat after each sentence.',
-    arrowDirection: 'left',
-  },
-  {
-    id: 'practice-tools',
-    targetId: 'tour-practice-tools',
-    badge: 'PRACTICE 3',
-    title: '📚 Study Sheets & Grammar Bites',
-    desc: 'Access printable study sheets, conjugated verb tables, sentence grammar bites, and share the story with classmates or students.',
-    tip: 'Tip: Click "Study Sheet" to view vocabulary breakdowns and print worksheets.',
-    arrowDirection: 'left',
-  },
+const PRACTICE_STEP_META: TourStepMeta[] = [
+  { id: 'practice-activities', targetId: 'tour-practice-activities', arrowDirection: 'left' },
+  { id: 'practice-voice', targetId: 'tour-practice-voice', arrowDirection: 'left' },
+  { id: 'practice-tools', targetId: 'tour-practice-tools', arrowDirection: 'left' },
 ];
 
 export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
@@ -104,12 +44,24 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
   onClose,
   currentMode,
   onSelectMode,
+  baseLang = 'English',
 }) => {
+  const t = getT(baseLang);
   const [activeTab, setActiveTab] = useState<TourMode>(currentMode);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [showAllBubbles, setShowAllBubbles] = useState(false);
   const [targetRects, setTargetRects] = useState<{ [key: string]: DOMRect | null }>({});
   const [isMobile, setIsMobile] = useState(false);
+
+  const buildSteps: TourStep[] = BUILD_STEP_META.map((meta, idx) => ({
+    ...meta,
+    ...t.tourBuildSteps[idx],
+  }));
+
+  const practiceSteps: TourStep[] = PRACTICE_STEP_META.map((meta, idx) => ({
+    ...meta,
+    ...t.tourPracticeSteps[idx],
+  }));
 
   // Always reset to Step 1 (index 0) and default view mode whenever the guide is opened
   useEffect(() => {
@@ -130,7 +82,7 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
     return () => window.removeEventListener('resize', checkWidth);
   }, []);
 
-  const steps = activeTab === 'build' ? BUILD_STEPS : PRACTICE_STEPS;
+  const steps = activeTab === 'build' ? buildSteps : practiceSteps;
   const currentStep = steps[currentStepIndex] || steps[0];
 
   // Measure target elements positions in the DOM
@@ -216,17 +168,17 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
               <span className="text-xl">💥</span>
               <div>
                 <h3 className="font-black text-sm tracking-wider uppercase text-slate-950">
-                  Quick Guide
+                  {t.quickGuideTitle}
                 </h3>
                 <p className="text-[10px] font-bold text-amber-950/80 uppercase">
-                  How Querviam Works in 30 Seconds
+                  {t.quickGuideSubtitle}
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
               className="p-1 rounded-xl bg-white border-2 border-slate-950 text-slate-950 hover:bg-slate-100 transition cursor-pointer shadow-[2px_2px_0px_#0f172a] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
-              title="Close Guide"
+              title={t.close}
             >
               <X className="w-4 h-4" />
             </button>
@@ -243,7 +195,7 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
                   : 'bg-white text-slate-700 border-transparent hover:border-slate-300'
               }`}
             >
-              <span>🛠️ Build Mode</span>
+              <span>{t.buildModeTab}</span>
             </button>
             <button
               type="button"
@@ -254,7 +206,7 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
                   : 'bg-white text-slate-700 border-transparent hover:border-slate-300'
               }`}
             >
-              <span>🎮 Practice Mode</span>
+              <span>{t.practiceModeTab}</span>
             </button>
           </div>
 
@@ -263,7 +215,7 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
             <div className="relative p-4 rounded-2xl bg-white border-2 border-slate-950 shadow-[4px_4px_0px_#0f172a]">
               {/* Comic Badge */}
               <div className="inline-block bg-amber-400 text-slate-950 border-2 border-slate-950 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider mb-2 shadow-[2px_2px_0px_#0f172a]">
-                {currentStep.badge} • Step {currentStepIndex + 1} of {steps.length}
+                {currentStep.badge} • {t.stepCounter(currentStepIndex + 1, steps.length)}
               </div>
 
               <h4 className="font-black text-base text-slate-950 mb-2 leading-tight">
@@ -293,7 +245,7 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
                       ? 'w-6 bg-slate-950'
                       : 'w-2.5 bg-slate-300 hover:bg-slate-400'
                   }`}
-                  title={`Go to step ${idx + 1}`}
+                  title={t.stepCounter(idx + 1, steps.length)}
                 />
               ))}
             </div>
@@ -312,7 +264,7 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
               }`}
             >
               <ChevronLeft className="w-3.5 h-3.5" />
-              <span>Back</span>
+              <span>{t.backBtn}</span>
             </button>
 
             <button
@@ -322,12 +274,12 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
             >
               {currentStepIndex === steps.length - 1 ? (
                 <>
-                  <span>Got It, Let&apos;s Build!</span>
+                  <span>{t.gotItLetsBuild}</span>
                   <Check className="w-4 h-4" />
                 </>
               ) : (
                 <>
-                  <span>Next Step</span>
+                  <span>{t.nextStepBtn}</span>
                   <ChevronRight className="w-4 h-4" />
                 </>
               )}
@@ -354,7 +306,7 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
         <div className="flex items-center gap-1.5 pr-2 border-r-2 border-slate-950">
           <span className="text-xl">🗨️</span>
           <span className="font-black text-xs tracking-wider uppercase text-slate-950">
-            Querviam Comic Guide
+            {t.comicGuideTitle}
           </span>
         </div>
 
@@ -369,7 +321,7 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
                 : 'text-slate-700 hover:text-slate-950'
             }`}
           >
-            🛠️ Build
+            {t.buildShortTab}
           </button>
           <button
             type="button"
@@ -380,7 +332,7 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
                 : 'text-slate-700 hover:text-slate-950'
             }`}
           >
-            🎮 Practice
+            {t.practiceShortTab}
           </button>
         </div>
 
@@ -393,10 +345,10 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
               ? 'bg-amber-300 text-slate-950 shadow-[2px_2px_0px_#0f172a]'
               : 'bg-white text-slate-800 hover:bg-slate-50'
           }`}
-          title="Toggle seeing all speech bubbles at once"
+          title={showAllBubbles ? t.stepByStepBtn : t.showAllBtn}
         >
           {showAllBubbles ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-          <span>{showAllBubbles ? 'Step-by-Step' : 'Show All'}</span>
+          <span>{showAllBubbles ? t.stepByStepBtn : t.showAllBtn}</span>
         </button>
 
         {/* Dismiss Button */}
@@ -404,7 +356,7 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
           type="button"
           onClick={onClose}
           className="p-1.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-950 border-2 border-slate-950 transition cursor-pointer shadow-[2px_2px_0px_#0f172a] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none ml-1"
-          title="Close Guide"
+          title={t.close}
         >
           <X className="w-4 h-4" />
         </button>
@@ -482,7 +434,7 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
                 <button
                   onClick={onClose}
                   className="p-1 rounded-lg text-slate-500 hover:text-slate-950 hover:bg-slate-100 transition cursor-pointer"
-                  title="Close Guide"
+                  title={t.close}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -519,7 +471,7 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
                   }`}
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
-                  <span>Back</span>
+                  <span>{t.backBtn}</span>
                 </button>
 
                 <div className="flex items-center gap-1">
@@ -530,7 +482,7 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
                       className={`h-2 rounded-full transition-all cursor-pointer ${
                         currentStepIndex === i ? 'w-5 bg-slate-950' : 'w-2 bg-slate-300 hover:bg-slate-400'
                       }`}
-                      title={`Step ${i + 1}`}
+                      title={t.stepCounter(i + 1, steps.length)}
                     />
                   ))}
                 </div>
@@ -542,12 +494,12 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
                 >
                   {currentStepIndex === steps.length - 1 ? (
                     <>
-                      <span>Start!</span>
+                      <span>{t.startBtnLabel}</span>
                       <Check className="w-3.5 h-3.5" />
                     </>
                   ) : (
                     <>
-                      <span>Next</span>
+                      <span>{t.nextBtnLabel}</span>
                       <ChevronRight className="w-3.5 h-3.5" />
                     </>
                   )}
@@ -601,7 +553,7 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
                         }}
                         className="text-[11px] font-black text-amber-950 hover:underline flex items-center gap-1 cursor-pointer"
                       >
-                        <span>Point to this section ➔</span>
+                        <span>{t.pointToSection}</span>
                       </button>
                     </div>
                   </div>
@@ -615,7 +567,7 @@ export const ComicGuideTour: React.FC<ComicGuideTourProps> = ({
                 onClick={onClose}
                 className="py-3 px-8 rounded-2xl border-3 border-slate-950 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm uppercase tracking-wider transition cursor-pointer shadow-[5px_5px_0px_#0f172a] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
               >
-                Got It! Ready to Learn & Build
+                {t.gotItReadyLearn}
               </button>
             </div>
           </div>

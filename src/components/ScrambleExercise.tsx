@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useId, useRef } from 'react';
 import { Volume2, RotateCcw, Headphones, HelpCircle, Sparkles } from 'lucide-react';
-import { getT } from '../utils/translations';
+import { getT, isRtlLanguage } from '../utils/translations';
 import { segmentWords } from '../utils/textUtils';
 
 interface ScrambleExerciseProps {
@@ -166,7 +166,7 @@ export const ScrambleExercise: React.FC<ScrambleExerciseProps> = ({
     if (correct) {
       setIsSolved(true);
       setIsWrong(false);
-      setFeedback(isVoiceOnly ? '🎉 Excellent ear! You transcribed the sentence accurately by listening.' : t.perfectWellDone);
+      setFeedback(isVoiceOnly ? t.dictationCorrectMsg : t.perfectWellDone);
       onSolve(sentenceIndex);
     } else {
       setIsWrong(true);
@@ -248,7 +248,7 @@ export const ScrambleExercise: React.FC<ScrambleExerciseProps> = ({
       .map((p) => words[p].text);
 
     if (placedWords.length === 0) {
-      setFeedback('Tap words below to build your sentence first!');
+      setFeedback(t.tapWordsBelow);
       return;
     }
     onSpeakText(placedWords.join(' '));
@@ -311,10 +311,10 @@ export const ScrambleExercise: React.FC<ScrambleExerciseProps> = ({
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-700 text-white text-[11px] font-black uppercase tracking-wider shadow-2xs">
                 <Headphones className="w-3.5 h-3.5" />
-                <span>Listening Dictation Mode</span>
+                <span>{t.dictationModeLabel}</span>
               </span>
               <span className="text-xs text-teal-900 font-medium">
-                Listen to native audio & build sentence
+                {t.dictationModeDesc}
               </span>
             </div>
             {sentenceTranslation && (
@@ -324,7 +324,7 @@ export const ScrambleExercise: React.FC<ScrambleExerciseProps> = ({
                 className="text-xs text-teal-800 hover:text-teal-950 font-bold underline underline-offset-2 flex items-center gap-1 cursor-pointer transition"
               >
                 <HelpCircle className="w-3.5 h-3.5" />
-                <span>{showTranslationHint ? 'Hide translation hint' : 'Show translation hint'}</span>
+                <span>{showTranslationHint ? t.hideHint : t.showHint}</span>
               </button>
             )}
           </div>
@@ -335,37 +335,40 @@ export const ScrambleExercise: React.FC<ScrambleExerciseProps> = ({
               type="button"
               onClick={() => onSpeakText(sentenceText)}
               className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
-              title="Play sentence audio at standard speed"
+              title={t.listenToSentence}
             >
               <Volume2 className="w-4 h-4" />
-              <span>Listen to Sentence</span>
+              <span>{t.listenToSentence}</span>
             </button>
 
             <button
               type="button"
               onClick={() => onSpeakText(sentenceText, 0.75)}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-teal-50 text-teal-800 border border-teal-300 active:scale-95 font-bold text-xs rounded-xl shadow-2xs transition cursor-pointer"
-              title="Play sentence at slower 0.75x speed"
+              title={t.slowBtn}
             >
               <span>🐢</span>
-              <span>Slow (0.75x)</span>
+              <span>{t.slowBtn}</span>
             </button>
 
             <span className="text-[11px] text-teal-800 font-medium italic">
-              💡 Tap any word tile below to preview its pronunciation!
+              {t.tapWordPreview}
             </span>
           </div>
 
           {showTranslationHint && sentenceTranslation && (
             <div className="mt-2.5 pt-2 border-t border-teal-200 text-xs text-teal-950 font-medium italic">
-              Translation: &ldquo;{sentenceTranslation}&rdquo;
+              {t.translationPrefix} &ldquo;{sentenceTranslation}&rdquo;
             </div>
           )}
         </div>
       )}
 
       {/* Target Slots Area */}
-      <div className="flex flex-wrap gap-1.5 sm:gap-2 p-1.5 sm:p-2.5 bg-slate-100 rounded-lg border-2 border-dashed border-slate-300 min-h-[32px] sm:min-h-[48px] items-center transition-all">
+      <div
+        dir={isRtlLanguage(targetLang) ? 'rtl' : 'ltr'}
+        className="flex flex-wrap gap-1.5 sm:gap-2 p-1.5 sm:p-2.5 bg-slate-100 rounded-lg border-2 border-dashed border-slate-300 min-h-[32px] sm:min-h-[48px] items-center transition-all"
+      >
         {words.map((_, slotIdx) => {
           const pos = placed[slotIdx];
           const isSlotEmpty = pos === null;
@@ -423,8 +426,8 @@ export const ScrambleExercise: React.FC<ScrambleExerciseProps> = ({
               }}
               title={
                 isTileCorrect
-                  ? 'Correct! Click to view word translation & pronunciation'
-                  : 'Click to return to bank (or drag to swap)'
+                  ? t.tapWordHint
+                  : t.tapToReturnTile
               }
               className={`inline-flex items-center justify-center min-w-[50px] h-9 px-3 rounded-lg border font-semibold text-sm select-none shadow-xs transition-all active:scale-95 ${
                 isTileCorrect
@@ -442,7 +445,10 @@ export const ScrambleExercise: React.FC<ScrambleExerciseProps> = ({
       </div>
 
       {/* Unused Word Bank */}
-      <div className="flex flex-wrap gap-2 my-2.5 min-h-[40px] items-center">
+      <div
+        dir={isRtlLanguage(targetLang) ? 'rtl' : 'ltr'}
+        className="flex flex-wrap gap-2 my-2.5 min-h-[40px] items-center"
+      >
         {order.map((pos) => {
           if (placed.includes(pos)) return null;
           const word = words[pos];
@@ -459,7 +465,7 @@ export const ScrambleExercise: React.FC<ScrambleExerciseProps> = ({
                 }
                 placeTile(pos);
               }}
-              title={isVoiceOnly ? `Tap to hear "${word.text}" and place into next slot` : 'Tap to place in next available slot, or drag into any slot'}
+              title={isVoiceOnly ? t.listenVerb : t.tapToReturnTile}
               className="inline-flex items-center justify-center h-9 px-3.5 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 border border-blue-200 text-blue-900 font-semibold text-sm rounded-lg shadow-xs transition cursor-grab active:cursor-grabbing select-none active:scale-95"
             >
               {isVoiceOnly && <Volume2 className="w-3 h-3 text-teal-600 mr-1.5 opacity-70" />}
@@ -468,7 +474,7 @@ export const ScrambleExercise: React.FC<ScrambleExerciseProps> = ({
           );
         })}
         {order.every((p) => placed.includes(p)) && !isSolved && (
-          <span className="text-xs text-slate-500 italic py-1">All tiles placed</span>
+          <span className="text-xs text-slate-500 italic py-1">{t.allTilesPlaced}</span>
         )}
       </div>
 

@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Cookie, X } from 'lucide-react';
+import { Cookie } from 'lucide-react';
+import { getT } from '../utils/translations';
 
 interface CookieConsentBannerProps {
   onOpenPrivacy: () => void;
+  baseLang?: string;
 }
 
 const COOKIE_CONSENT_KEY = 'querviam_cookie_consent_v1';
 
-export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onOpenPrivacy }) => {
+export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({
+  onOpenPrivacy,
+  baseLang = 'English',
+}) => {
+  const t = getT(baseLang);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -41,7 +47,7 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onOpen
 
   return (
     <aside
-      aria-label="Cookie and Privacy Consent Banner"
+      aria-label={t.cookieBannerTitle}
       className="fixed bottom-16 lg:bottom-4 inset-x-3 sm:inset-x-6 z-50 max-w-2xl mx-auto bg-white/98 backdrop-blur-md border border-slate-300/90 rounded-2xl p-4 shadow-2xl animate-fade-in flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-700"
     >
       <div className="flex items-start gap-2.5 flex-1 pr-1">
@@ -50,17 +56,16 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onOpen
         </div>
         <div className="space-y-0.5">
           <span className="font-bold text-slate-900 block text-xs">
-            Cookie & Privacy Notice
+            {t.cookieBannerTitle}
           </span>
           <p className="text-[11px] text-slate-600 leading-snug">
-            Querviam uses local storage to save your reading progress privately on your device, and uses cookies
-            via Google AdSense to serve ads and support free language education.{' '}
+            {t.cookieBannerDesc}{' '}
             <button
               type="button"
               onClick={onOpenPrivacy}
               className="text-[#008450] font-bold underline hover:text-emerald-800 cursor-pointer"
             >
-              Privacy Policy
+              {t.privacyPolicyLink}
             </button>
           </p>
         </div>
@@ -72,14 +77,14 @@ export const CookieConsentBanner: React.FC<CookieConsentBannerProps> = ({ onOpen
           onClick={handleEssentialOnly}
           className="px-3 py-1.5 rounded-xl border border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition cursor-pointer"
         >
-          Essential Only
+          {t.essentialOnlyBtn}
         </button>
         <button
           type="button"
           onClick={handleAcceptAll}
           className="px-3.5 py-1.5 rounded-xl bg-[#008450] hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition cursor-pointer active:scale-95"
         >
-          Accept All
+          {t.acceptAllBtn}
         </button>
       </div>
     </aside>

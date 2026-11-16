@@ -214,14 +214,14 @@ export const MasterSpecialtiesModal: React.FC<MasterSpecialtiesModalProps> = ({
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="text-lg sm:text-xl font-bold tracking-tight text-white">
-                    Master Level Specialties (C2+)
+                    {t.masterSpecialtiesTitle}
                   </h3>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-400/90 text-amber-950 tracking-wider">
-                    Specialist Tier
+                    {t.specialistTierBadge}
                   </span>
                 </div>
                 <p className="text-xs text-emerald-100/80 mt-0.5 max-w-md">
-                  Select one or more domains. Stories in {targetLang} will weave authentic expert vocabulary, specialized phrasing, and native sophistication.
+                  {t.masterSpecialtiesSubtitle(targetLang)}
                 </p>
               </div>
             </div>
@@ -230,7 +230,7 @@ export const MasterSpecialtiesModal: React.FC<MasterSpecialtiesModalProps> = ({
               type="button"
               onClick={onClose}
               className="p-1.5 rounded-xl text-emerald-100/70 hover:text-white hover:bg-white/10 transition cursor-pointer"
-              title={t.close || 'Close'}
+              title={t.close}
             >
               <X className="w-5 h-5" />
             </button>
@@ -240,10 +240,10 @@ export const MasterSpecialtiesModal: React.FC<MasterSpecialtiesModalProps> = ({
           <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-emerald-200">
-                Active Selection:
+                {t.activeSelectionLabel}
               </span>
               <span className="px-2 py-0.5 bg-emerald-500/30 text-emerald-100 border border-emerald-400/40 rounded-full font-bold text-xs">
-                {selectedSpecialties.length} selected
+                {t.selectedCountBadge(selectedSpecialties.length)}
               </span>
             </div>
 
@@ -254,7 +254,7 @@ export const MasterSpecialtiesModal: React.FC<MasterSpecialtiesModalProps> = ({
                   onClick={clearAll}
                   className="text-xs text-rose-200 hover:text-rose-100 hover:underline cursor-pointer"
                 >
-                  Clear all
+                  {t.clearAllBtn}
                 </button>
               )}
             </div>
@@ -269,7 +269,7 @@ export const MasterSpecialtiesModal: React.FC<MasterSpecialtiesModalProps> = ({
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search domains (e.g. law, physics, classical Italian, slang, medicine)..."
+              placeholder={t.searchDomainsPlaceholder}
               className="w-full pl-9 pr-8 py-2 text-xs bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#008450]"
             />
             {search && (
@@ -286,12 +286,12 @@ export const MasterSpecialtiesModal: React.FC<MasterSpecialtiesModalProps> = ({
           {/* Category Tabs */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-[11px] font-semibold">
             {[
-              { id: 'all', label: 'All Domains' },
-              { id: 'law_biz', label: '⚖️ Law & Business' },
-              { id: 'science_tech', label: '⚛️ Science & Tech' },
-              { id: 'medicine', label: '🩺 Healthcare' },
-              { id: 'humanities', label: '📜 Literary & Arts' },
-              { id: 'culture', label: '💬 Colloquial & Life' },
+              { id: 'all', label: t.catAllDomains },
+              { id: 'law_biz', label: t.catLawBiz },
+              { id: 'science_tech', label: t.catScienceTech },
+              { id: 'medicine', label: t.catMedicine },
+              { id: 'humanities', label: t.catHumanities },
+              { id: 'culture', label: t.catCulture },
             ].map((cat) => (
               <button
                 key={cat.id}
@@ -313,7 +313,7 @@ export const MasterSpecialtiesModal: React.FC<MasterSpecialtiesModalProps> = ({
         <div className="p-3 sm:p-4 overflow-y-auto space-y-2 max-h-[46vh]">
           {filteredSpecialties.length === 0 ? (
             <div className="text-center py-8 text-slate-500 text-sm">
-              No specialties found matching &quot;{search}&quot;.
+              {t.noSpecialtiesFound(search)}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -382,12 +382,12 @@ export const MasterSpecialtiesModal: React.FC<MasterSpecialtiesModalProps> = ({
         <div className="p-3 sm:p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
           <div className="text-xs text-slate-600 truncate max-w-sm">
             {selectedSpecialties.length === 0 ? (
-              <span className="italic text-slate-400">No specialties selected (default general C2+ mastery will apply).</span>
+              <span className="italic text-slate-400">{t.noSpecialtiesSelected}</span>
             ) : (
               <span>
-                <strong className="text-slate-900">{selectedSpecialties.length} active:</strong>{' '}
+                <strong className="text-slate-900">{t.activeCountLabel(selectedSpecialties.length)}</strong>{' '}
                 {selectedSpecialties.slice(0, 2).join(', ')}
-                {selectedSpecialties.length > 2 && ` +${selectedSpecialties.length - 2} more`}
+                {selectedSpecialties.length > 2 && ` +${selectedSpecialties.length - 2} ${t.moreSuffix}`}
               </span>
             )}
           </div>
@@ -397,7 +397,7 @@ export const MasterSpecialtiesModal: React.FC<MasterSpecialtiesModalProps> = ({
             onClick={onClose}
             className="px-5 py-2 bg-[#008450] hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-sm transition cursor-pointer flex items-center gap-1.5"
           >
-            <span>Save & Apply Specialties</span>
+            <span>{t.saveApplySpecialtiesBtn}</span>
             <Check className="w-4 h-4" />
           </button>
         </div>

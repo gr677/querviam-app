@@ -101,7 +101,7 @@ import {
   clearActiveStoryRef,
 } from './utils/storage';
 import { splitWordPunctuation } from './utils/textUtils';
-import { getT } from './utils/translations';
+import { getT, isRtlLanguage, getHtmlLangCode } from './utils/translations';
 
 export interface LanguageOption {
   name: string;
@@ -346,7 +346,7 @@ export default function App() {
   const [contentType, setContentType] = useState<ContentType>('story');
   const [isFact, setIsFact] = useState(true);
   const [includeVerbs, setIncludeVerbs] = useState(false);
-  const [promptInput, setPromptInput] = useState('Give me a topic as a seed for your story');
+  const [promptInput, setPromptInput] = useState('');
   const [isTopicInputFocused, setIsTopicInputFocused] = useState(false);
   const topicInputRef = useRef<HTMLInputElement>(null);
 
@@ -499,6 +499,13 @@ export default function App() {
     } catch {}
   }, []);
 
+  // Sync document html lang & RTL direction whenever baseLang ("I Speak") changes
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.lang = getHtmlLangCode(baseLang);
+    document.documentElement.dir = isRtlLanguage(baseLang) ? 'rtl' : 'ltr';
+  }, [baseLang]);
+
   const [welcomeToast, setWelcomeToast] = useState<{ message: string; sub?: string } | null>(null);
 
   const playNativeGreeting = (lang: LanguageOption) => {
@@ -523,6 +530,7 @@ export default function App() {
       localStorage.setItem('impara_base_lang', newBase);
     } catch {}
 
+    const nextT = getT(newBase);
     const langObj = BASE_LANGUAGES.find((b) => b.name === newBase);
     if (langObj) {
       if (shouldSpeak) {
@@ -530,15 +538,15 @@ export default function App() {
       }
       setWelcomeToast({
         message: `${langObj.flag} ${langObj.nativeName}`,
-        sub: langObj.nativeCountry ? `${langObj.nativeCountry} • ${langObj.greeting || ''}` : langObj.greeting,
+        sub: nextT.welcomeLearnerToast?.(langObj.nativeName) || (langObj.nativeCountry ? `${langObj.nativeCountry} • ${langObj.greeting || ''}` : langObj.greeting),
       });
       setTimeout(() => setWelcomeToast(null), 3200);
     }
 
     if (newBase === targetLang) {
       setWelcomeToast({
-        message: `👑 ${langObj?.flag || ''} "Teach Me My Own Language" Mode`,
-        sub: `Elevating vocabulary, specialist registers & deep grammar in ${newBase}!`,
+        message: `👑 ${langObj?.flag || ''} ${nextT.teachOwnLangTitle}`,
+        sub: nextT.teachOwnLangDesc(newBase),
       });
       setTimeout(() => setWelcomeToast(null), 3800);
     }
@@ -553,8 +561,8 @@ export default function App() {
     if (newTarget === baseLang) {
       const langObj = LANGUAGES.find((b) => b.name === newTarget);
       setWelcomeToast({
-        message: `👑 ${langObj?.flag || ''} "Teach Me My Own Language" Mode`,
-        sub: `Elevating vocabulary, specialist registers & deep grammar in ${newTarget}!`,
+        message: `👑 ${langObj?.flag || ''} ${t.teachOwnLangTitle}`,
+        sub: t.teachOwnLangDesc(newTarget),
       });
       setTimeout(() => setWelcomeToast(null), 3800);
     }
@@ -1748,20 +1756,20 @@ export default function App() {
         saveLocalStory(data.filename, currentStory);
         migrateKey(data.filename);
         setCurrentStoryFilename(data.filename);
-        alert(`Saved "${currentStory.title_target}" to library!`);
+        alert(t.savedLocal);
       } else {
         const localKey = `local_${Date.now()}.json`;
         saveLocalStory(localKey, currentStory);
         migrateKey(localKey);
         setCurrentStoryFilename(localKey);
-        alert('Saved story locally to device memory.');
+        alert(t.savedLocal);
       }
     } catch (err) {
       const localKey = `local_${Date.now()}.json`;
       saveLocalStory(localKey, currentStory);
       migrateKey(localKey);
       setCurrentStoryFilename(localKey);
-      alert('Saved story to device cache.');
+      alert(t.savedLocal);
     }
   };
 
@@ -1769,7 +1777,7 @@ export default function App() {
   const handleDeleteCurrentStory = async () => {
     if (!currentStory) return;
     const storyTitle = currentStory.title_target || 'this story';
-    if (!confirm(`Are you sure you want to delete "${storyTitle}"?`)) return;
+    if (!confirm(t.deleteConfirm(storyTitle))) return;
 
     stopAudio();
 
@@ -2623,7 +2631,7 @@ export default function App() {
               </div>
               <div className="flex flex-col">
                 <span className="font-extrabold text-slate-900 text-base tracking-tight leading-none">Querviam</span>
-                <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">Language Immersion</span>
+                <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">{t.languageImmersion}</span>
               </div>
             </div>
             <div className="flex items-center gap-1.5">
@@ -2631,14 +2639,15 @@ export default function App() {
                 type="button"
                 onClick={() => handleOpenComicTour(sidebarTab)}
                 className="flex items-center gap-1 text-[11px] font-black text-slate-950 bg-amber-400 hover:bg-amber-300 px-2.5 py-1 rounded-xl border-2 border-slate-950 shadow-[2px_2px_0px_#0f172a] transition cursor-pointer active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
-                title="Open Interactive Comic Guide"
+                title={t.guideTitle}
               >
                 <span>💬</span>
-                <span>Guide</span>
+                <span>{t.guide}</span>
               </button>
               <button
                 onClick={() => setIsSidebarMobileOpen(false)}
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 lg:hidden cursor-pointer"
+                title={t.close}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2651,7 +2660,7 @@ export default function App() {
             disabled={isGenerating || isTopicEmptyOrDefault}
             title={
               isTopicEmptyOrDefault
-                ? 'Please enter a story topic to create a story'
+                ? t.enterTopicTooltip
                 : t.createStory
             }
             className={`w-full py-2.5 px-4 font-bold text-sm rounded-xl shadow-xs transition flex items-center justify-center gap-2 ${
@@ -2714,10 +2723,10 @@ export default function App() {
               : 'bg-emerald-100/70 text-emerald-900 border-emerald-200/80 shadow-2xs'
           }`}>
             <span className="flex items-center gap-1">
-              <span>{sidebarTab === 'build' ? '✨ Mode: Story Builder' : '🎯 Mode: Practice & Exercises'}</span>
+              <span>{sidebarTab === 'build' ? `✨ ${t.modeBuilder}` : `🎯 ${t.modePractice}`}</span>
             </span>
             <span className="text-[9px] font-semibold opacity-75 uppercase tracking-wider">
-              {sidebarTab === 'build' ? 'Craft Story' : 'Interactive'}
+              {sidebarTab === 'build' ? t.craftStory : t.interactive}
             </span>
           </div>
         </div>
@@ -2743,7 +2752,7 @@ export default function App() {
                       { val: 'multipleChoice', label: `🎯 ${t.modeMultipleChoice}` },
                       { val: 'scramble', label: `🧩 ${t.modeScramble}` },
                       { val: 'scrambleVoice', label: `🎧 ${t.modeScrambleVoice || 'Scramble (from Dictation)'}` },
-                      { val: 'quiz', label: `❓ Comprehension Quiz` },
+                      { val: 'quiz', label: `❓ ${t.modeQuiz}` },
                     ].map((m) => {
                       const isDisabledForChinese =
                         isTargetChinese && (m.val === 'cloze' || m.val === 'scramble' || m.val === 'scrambleVoice');
@@ -2754,8 +2763,8 @@ export default function App() {
                           title={
                             isDisabledForChinese
                               ? m.val === 'cloze'
-                                ? 'Spelling practice is disabled for Chinese as sentences do not use spaces and character typing requires IME composition. Please use Multiple Choice instead!'
-                                : 'Sentence scramble is disabled for Chinese as sentences do not use spaces between words. Please use Multiple Choice instead!'
+                                ? t.chineseClozeTooltip
+                                : t.chineseScrambleTooltip
                               : undefined
                           }
                           className={`flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg transition font-medium ${
@@ -2781,7 +2790,7 @@ export default function App() {
                           </div>
                           {isDisabledForChinese && (
                             <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider text-slate-400 bg-slate-200/80 px-1.5 py-0.5 rounded-md">
-                              N/A for Chinese
+                              {t.naForChinese}
                             </span>
                           )}
                         </label>
@@ -2795,7 +2804,7 @@ export default function App() {
                   <div className="p-2.5 bg-amber-50/80 border border-amber-200/80 rounded-xl text-[11px] text-amber-900 leading-normal flex items-start gap-1.5 shadow-2xs">
                     <span className="shrink-0 text-amber-600 font-bold text-xs mt-0.5">💡</span>
                     <span>
-                      In Chinese, words flow together without spaces. <strong>Multiple Choice</strong> automatically breaks down words, inserts an interactive blank, and joins characters seamlessly.
+                      {t.chineseQuizOnlyNote}
                     </span>
                   </div>
                 )}
@@ -2865,10 +2874,10 @@ export default function App() {
                         type="button"
                         onClick={() => setIsShareModalOpen(true)}
                         className="p-2 rounded-xl bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-left text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-xs active:scale-95"
-                        title="Email or share this story"
+                        title={t.shareStoryTitle}
                       >
                         <Share2 className="w-3.5 h-3.5 text-emerald-100" />
-                        <span>Share Story</span>
+                        <span>{t.shareStory}</span>
                       </button>
                     </div>
                   </div>
@@ -3013,9 +3022,9 @@ export default function App() {
                         handleSelectTargetLang(prevBase);
                       }}
                       className="flex items-center gap-1 text-[10px] font-bold text-amber-900 hover:text-amber-950 bg-amber-50 hover:bg-amber-100/80 px-2 py-0.5 rounded-lg border border-amber-300 transition cursor-pointer shadow-2xs active:scale-95"
-                      title={t.flipLanguages || 'Swap / Flip I Speak & Target Language'}
+                      title={t.flipLanguages}
                     >
-                      <span>⇄ Flip</span>
+                      <span>{t.flipShort}</span>
                     </button>
                   </div>
                   <select
@@ -3036,7 +3045,7 @@ export default function App() {
                 {/* Target Language (To Learn) Section */}
                 <div>
                   <label className="font-bold text-[10px] sm:text-[11px] text-amber-950 uppercase tracking-wider block mb-1">
-                    {t.targetLanguageLabel || '🎯 Target Language (To Learn)'}
+                    {t.targetLanguageLabel}
                   </label>
                   <select
                     value={targetLang}
@@ -3059,10 +3068,10 @@ export default function App() {
                     <span className="text-base shrink-0">👑</span>
                     <div className="text-[11px] leading-tight">
                       <span className="font-extrabold text-amber-950 block">
-                        &ldquo;Teach Me My Own Language&rdquo; Mode Active
+                        {t.teachOwnLangTitle}
                       </span>
                       <span className="text-slate-600 block mt-0.5">
-                        Focusing on vocabulary expansion, specialist registers, rhetoric &amp; deep grammar in <strong>{baseLang}</strong>. Subtitles will provide lexical insights and synonyms instead of literal repetition.
+                        {t.teachOwnLangDesc(baseLang)}
                       </span>
                     </div>
                   </div>
@@ -3073,7 +3082,7 @@ export default function App() {
               <div id="tour-build-topic" className="p-3 bg-white border-2 border-amber-400/90 rounded-2xl shadow-xs space-y-2 ring-2 ring-amber-100 relative">
                 <div className="flex items-center justify-between">
                   <label className="font-extrabold text-[11px] text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
-                    <span>💡 Story Topic / Idea</span>
+                    <span>{t.topicIdeaLabel}</span>
                   </label>
                   <button
                     type="button"
@@ -3083,10 +3092,10 @@ export default function App() {
                         ? 'bg-rose-500 text-white animate-pulse'
                         : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300'
                     }`}
-                    title={isListeningTopic ? 'Stop listening' : 'Speak to input topic idea'}
+                    title={isListeningTopic ? t.stopListeningTitle : t.speakTopicTitle}
                   >
                     <Mic className="w-3.5 h-3.5" />
-                    <span>{isListeningTopic ? 'Listening...' : 'Speak'}</span>
+                    <span>{isListeningTopic ? t.listeningBtn : t.speakBtn}</span>
                   </button>
                 </div>
                 <div className="relative flex items-center">
@@ -3108,9 +3117,6 @@ export default function App() {
                     }}
                     onBlur={() => {
                       setIsTopicInputFocused(false);
-                      if (!promptInput.trim()) {
-                        setPromptInput('Give me a topic as a seed for your story');
-                      }
                       if (typeof window !== 'undefined') {
                         setTimeout(() => {
                           window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -3134,7 +3140,7 @@ export default function App() {
                         }
                       }
                     }}
-                    placeholder={t.promptPlaceholder || 'Give me a topic as a seed for your story'}
+                    placeholder={t.promptPlaceholder}
                     className="w-full pl-3 pr-9 py-2 text-xs bg-amber-50/40 border border-amber-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium text-slate-800"
                   />
                   <button
@@ -3145,7 +3151,7 @@ export default function App() {
                         ? 'text-rose-600 animate-pulse'
                         : 'text-amber-700/60 hover:text-amber-900'
                     }`}
-                    title={isListeningTopic ? 'Stop listening' : 'Speak topic idea'}
+                    title={isListeningTopic ? t.stopListeningTitle : t.speakTopicTitle}
                   >
                     <Mic className="w-4 h-4" />
                   </button>
@@ -3156,7 +3162,7 @@ export default function App() {
                   <div className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 bg-amber-100/95 border border-amber-300 rounded-xl text-xs text-amber-950 animate-fade-in shadow-2xs">
                     <span className="text-[11px] font-bold flex items-center gap-1 text-amber-900 truncate">
                       <Keyboard className="w-3.5 h-3.5 text-amber-700 shrink-0" />
-                      <span className="truncate">Finished typing your topic?</span>
+                      <span className="truncate">{t.finishedTypingTopic}</span>
                     </span>
                     <button
                       type="button"
@@ -3184,7 +3190,7 @@ export default function App() {
                       className="px-2.5 py-1 bg-amber-700 hover:bg-amber-800 active:scale-95 text-white font-extrabold text-[11px] rounded-lg shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
                     >
                       <Check className="w-3 h-3" />
-                      <span>Dismiss Keyboard ▾</span>
+                      <span>{t.dismissKeyboard}</span>
                     </button>
                   </div>
                 )}
@@ -3240,7 +3246,7 @@ export default function App() {
                       onClick={() => setIsMasterModalOpen(true)}
                       className="text-[10px] font-extrabold text-amber-900 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-full border border-amber-300 transition cursor-pointer flex items-center gap-1 shadow-2xs"
                     >
-                      <span>👑 {masterSpecialties.length} Specialties</span>
+                      <span>{t.specialtiesBadge(masterSpecialties.length)}</span>
                     </button>
                   )}
                 </div>
@@ -3250,7 +3256,7 @@ export default function App() {
                     { val: 'Beginner (A1-A2)', label: t.diffBeginner },
                     { val: 'Intermediate (B1-B2)', label: t.diffIntermediate },
                     { val: 'Advanced (C1-C2)', label: t.diffAdvanced },
-                    { val: 'Master (C2+)', label: 'Master (C2+) — Specialist & Native' },
+                    { val: 'Master (C2+)', label: t.diffMaster },
                   ].map((d) => {
                     const isSelected = difficulty === d.val;
                     return (
@@ -3291,9 +3297,9 @@ export default function App() {
                                 setIsMasterModalOpen(true);
                               }}
                               className="text-[10px] font-bold text-amber-900 bg-amber-200/80 hover:bg-amber-300 px-2 py-0.5 rounded-lg border border-amber-300/80 transition cursor-pointer shrink-0 ml-1"
-                              title="Select domains (Law, Finance, Physics, Classical Italian, Slang...)"
+                              title={t.chooseDomainsTitle}
                             >
-                              ⚙ Choose Domains
+                              {t.chooseDomainsBtn}
                             </button>
                           )}
                         </label>
@@ -3302,16 +3308,16 @@ export default function App() {
                           <div className="pl-6 pr-2 pb-1 text-[10px] text-amber-900/80 flex items-center justify-between">
                             <span className="truncate max-w-[210px]">
                               {masterSpecialties.length === 0
-                                ? 'General C2+ Mastery'
+                                ? t.generalMastery
                                 : masterSpecialties.slice(0, 2).join(', ') +
-                                  (masterSpecialties.length > 2 ? ` +${masterSpecialties.length - 2} more` : '')}
+                                  (masterSpecialties.length > 2 ? ` +${masterSpecialties.length - 2} ${t.moreSuffix}` : '')}
                             </span>
                             <button
                               type="button"
                               onClick={() => setIsMasterModalOpen(true)}
                               className="underline font-bold text-amber-950 hover:text-black cursor-pointer shrink-0"
                             >
-                              Edit list
+                              {t.editList}
                             </button>
                           </div>
                         )}
@@ -3440,7 +3446,7 @@ export default function App() {
                     ? 'bg-slate-100/90 border-slate-200 text-slate-400 cursor-not-allowed'
                     : 'bg-white/95 border-amber-200/80 cursor-pointer font-medium text-amber-950 hover:bg-amber-50/50'
                 }`}
-                title={length === '40' || length === '50' ? 'Conjugated verbs are disabled for Max length stories to ensure fast, reliable generation.' : undefined}
+                title={length === '40' || length === '50' ? t.disabledForMaxTitle : undefined}
               >
                 <input
                   type="checkbox"
@@ -3452,7 +3458,7 @@ export default function App() {
                 <span className="flex-1">{t.includeVerbs}</span>
                 {(length === '40' || length === '50') && (
                   <span className="text-[10px] font-semibold text-slate-500 bg-slate-200/80 px-2 py-0.5 rounded-md">
-                    Disabled for Max
+                    {t.disabledForMax}
                   </span>
                 )}
               </label>
@@ -3470,7 +3476,7 @@ export default function App() {
                 }}
                 className="hover:text-emerald-800 underline cursor-pointer"
               >
-                Privacy
+                {t.privacyShort}
               </button>
               <span>•</span>
               <button
@@ -3481,7 +3487,7 @@ export default function App() {
                 }}
                 className="hover:text-emerald-800 underline cursor-pointer"
               >
-                Terms
+                {t.termsShort}
               </button>
               <span>•</span>
               <button
@@ -3492,10 +3498,10 @@ export default function App() {
                 }}
                 className="hover:text-emerald-800 underline cursor-pointer"
               >
-                About
+                {t.aboutShort}
               </button>
             </div>
-            <p className="text-[10px] text-amber-900/50">Google AdSense Partner • Privacy Verified</p>
+            <p className="text-[10px] text-amber-900/50">{t.adsensePartner}</p>
           </div>
         </div>
       </aside>
@@ -3526,7 +3532,7 @@ export default function App() {
             <button
               onClick={() => setIsSidebarMobileOpen(true)}
               className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 lg:hidden text-slate-700"
-              title="Open Options Sidebar"
+              title={t.openOptionsSidebar}
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -3539,7 +3545,7 @@ export default function App() {
                 setIsSidebarMobileOpen(true);
               }}
               className="lg:hidden flex items-center gap-1.5 px-2 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-950 border border-emerald-300 rounded-xl text-xs font-bold shadow-2xs transition shrink-0 cursor-pointer"
-              title="Select spoken language"
+              title={t.selectSpokenLangTitle}
             >
               <span className="text-sm">{BASE_LANGUAGES.find((b) => b.name === baseLang)?.flag || '🗣️'}</span>
               <span className="max-w-[70px] truncate text-[11px] font-bold">
@@ -3563,13 +3569,8 @@ export default function App() {
                       setPromptInput('');
                     }
                   }}
-                  onBlur={() => {
-                    if (!promptInput.trim()) {
-                      setPromptInput('Give me a topic as a seed for your story');
-                    }
-                  }}
                   onKeyDown={(e) => e.key === 'Enter' && !isTopicEmptyOrDefault && handleGenerate()}
-                  placeholder={t.promptPlaceholder || 'Give me a topic as a seed for your story'}
+                  placeholder={t.promptPlaceholder}
                   className="w-full pl-3.5 pr-10 py-2 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#008450]"
                 />
                 <button
@@ -3580,15 +3581,15 @@ export default function App() {
                       ? 'bg-rose-500 text-white animate-pulse'
                       : 'text-slate-400 hover:text-emerald-700 hover:bg-slate-100'
                   }`}
-                  title={isListeningTopic ? 'Stop listening' : 'Speak to input topic idea'}
+                  title={isListeningTopic ? t.stopListeningTitle : t.speakTopicTitle}
                 >
                   <Mic className="w-4 h-4" />
                 </button>
               </div>
               {currentStory && (
                 <div className="text-[11px] text-slate-500 mt-1 truncate">
-                  <span className="font-bold text-slate-700">{currentStory.title_target}</span>{' '}
-                  ({currentStory.title_en}) • {currentStory.sentences.length} {t.sentences} •{' '}
+                  <span className="font-bold text-slate-700" dir={isRtlLanguage(currentStory._meta?.targetLang || targetLang) ? 'rtl' : 'ltr'}>{currentStory.title_target}</span>{' '}
+                  <span dir={isRtlLanguage(currentStory._meta?.baseLang || baseLang) ? 'rtl' : 'ltr'}>({currentStory.title_en})</span> • {currentStory.sentences.length} {t.sentences} •{' '}
                   {currentStory.contentType === 'discussion' ? t.dialogue : t.story}
                 </div>
               )}
@@ -3597,11 +3598,11 @@ export default function App() {
             {/* Mobile Header Story Info (Phone Only) */}
             {currentStory && (
               <div className="lg:hidden flex-1 min-w-0 pr-1">
-                <div className="text-xs font-bold text-slate-900 truncate">
+                <div className="text-xs font-bold text-slate-900 truncate" dir={isRtlLanguage(currentStory._meta?.targetLang || targetLang) ? 'rtl' : 'ltr'}>
                   {currentStory.title_target}
                 </div>
                 <div className="text-[10px] text-slate-500 truncate">
-                  {currentStory.title_en} • {currentStory.sentences.length} {t.sentences}
+                  <span dir={isRtlLanguage(currentStory._meta?.baseLang || baseLang) ? 'rtl' : 'ltr'}>{currentStory.title_en}</span> • {currentStory.sentences.length} {t.sentences}
                 </div>
               </div>
             )}
@@ -3613,7 +3614,7 @@ export default function App() {
             <button
               onClick={() => setIsStatsOpen(true)}
               className="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 text-xs font-bold rounded-xl shadow-2xs transition cursor-pointer active:scale-95"
-              title="Daily Streak & Vocabulary Progress"
+              title={t.statsModalTitle}
             >
               <span>{t.streakBadge(learnerStats.currentStreak)}</span>
             </button>
@@ -3633,11 +3634,11 @@ export default function App() {
                 type="button"
                 onClick={() => setIsShareModalOpen(true)}
                 className="flex items-center gap-1.5 px-3 py-2 bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer active:scale-95"
-                title="Email or share this story with friends, students, or classmates"
+                title={t.shareStoryTitle}
               >
                 <Share2 className="w-4 h-4 text-emerald-100" />
-                <span className="hidden sm:inline">Share Story</span>
-                <span className="sm:hidden">Share</span>
+                <span className="hidden sm:inline">{t.shareStory}</span>
+                <span className="sm:hidden">{t.shareShort}</span>
               </button>
             )}
 
@@ -3650,7 +3651,7 @@ export default function App() {
                   ? 'bg-purple-100 text-purple-900 border-purple-300 shadow-xs'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
               }`}
-              title="Toggle Studio HD Natural Voice synthesis"
+              title={t.studioVoice}
             >
               <Sparkles className={`w-3.5 h-3.5 ${isStudioVoice ? 'text-purple-600 fill-purple-600' : 'text-slate-400'}`} />
               <span>{t.studioVoice}</span>
@@ -3699,6 +3700,7 @@ export default function App() {
               <ContextualMicroHint
                 forceShow={showMicroHintForce}
                 targetLang={currentStory?._meta?.targetLang || targetLang}
+                baseLang={baseLang}
               />
 
               {/* Story Overview & Metadata Card */}
@@ -3709,11 +3711,11 @@ export default function App() {
                     <span className="text-lg">
                       {currentStory.contentType === 'discussion' ? '🎙️' : '📖'}
                     </span>
-                    <h2 className="text-base sm:text-lg font-bold text-slate-900 truncate">
+                    <h2 className="text-base sm:text-lg font-bold text-slate-900 truncate" dir={isRtlLanguage(currentStory._meta?.targetLang || targetLang) ? 'rtl' : 'ltr'}>
                       {currentStory.title_target}
                     </h2>
                     {currentStory.title_en && (
-                      <span className="text-xs sm:text-sm text-slate-500 font-medium truncate">
+                      <span className="text-xs sm:text-sm text-slate-500 font-medium truncate" dir={isRtlLanguage(currentStory._meta?.baseLang || baseLang) ? 'rtl' : 'ltr'}>
                         ({currentStory.title_en})
                       </span>
                     )}
@@ -3782,7 +3784,7 @@ export default function App() {
                       {currentStory.sentences.length} {t.sentences}
                       {currentStory._meta?.length && parseInt(String(currentStory._meta.length), 10) > currentStory.sentences.length && (
                         <span className="ml-1 text-[10px] text-amber-700 font-normal">
-                          (of {currentStory._meta.length} req)
+                          ({t.ofWord} {currentStory._meta.length})
                         </span>
                       )}
                     </span>
@@ -3792,10 +3794,10 @@ export default function App() {
                       type="button"
                       onClick={() => setIsInspectorOpen(true)}
                       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border border-slate-200 transition cursor-pointer"
-                      title="Inspect story details, sentence counts, and raw JSON diagnostics"
+                      title={t.inspectTitle}
                     >
                       <Info className="w-3 h-3 text-slate-500" />
-                      <span>Inspect</span>
+                      <span>{t.inspect}</span>
                     </button>
                   </div>
                 </div>
@@ -3858,7 +3860,7 @@ export default function App() {
                     type="button"
                     onClick={() => setIsConversationOpen(true)}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-300 rounded-xl transition cursor-pointer shadow-2xs active:scale-95"
-                    title="Live Interactive Conversation Partner (Talk with native character)"
+                    title={t.conversationPartnerTitle}
                   >
                     <MessageSquare className="w-3.5 h-3.5 text-teal-600" />
                     <span>{t.converse}</span>
@@ -3869,10 +3871,10 @@ export default function App() {
                     type="button"
                     onClick={() => setShowMicroHintForce((prev) => !prev)}
                     className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition cursor-pointer shadow-2xs"
-                    title="Quick Tips & Hints"
+                    title={t.tipsTitle}
                   >
                     <HelpCircle className="w-3.5 h-3.5 text-emerald-700" />
-                    <span>Tips</span>
+                    <span>{t.tips}</span>
                   </button>
 
                   {/* Speed Run Timer Challenge (Active during practice modes) */}
@@ -3882,6 +3884,7 @@ export default function App() {
                       onToggleActive={() => setIsSpeedRunActive((prev) => !prev)}
                       solvedCount={activeSolvedCount}
                       totalQuestions={currentStory.sentences.length}
+                      baseLang={baseLang}
                       onResetPractice={handleResetCurrentPractice}
                       onShareStory={() => setIsShareModalOpen(true)}
                     />
@@ -3894,20 +3897,20 @@ export default function App() {
                 <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-linear-to-r from-amber-50 via-emerald-50 to-sky-50 border border-amber-300 rounded-2xl shadow-xs text-xs animate-fade-in mb-1">
                   <div className="flex items-center gap-1.5 font-bold text-slate-800">
                     <Highlighter className="w-4 h-4 text-amber-600 stroke-[2.5]" />
-                    <span>Grammar Highlighter Active:</span>
+                    <span>{t.highlighterActiveLabel}</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-950 border border-amber-300 font-extrabold text-[11px] shadow-2xs">
-                      🏷️ Articles (Gold)
+                      {t.articlesGold}
                     </span>
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-emerald-100 text-emerald-950 border border-emerald-300 font-extrabold text-[11px] shadow-2xs">
-                      ⚡ Verbs (Green)
+                      {t.verbsGreen}
                     </span>
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-sky-100 text-sky-950 border border-sky-300 font-extrabold text-[11px] shadow-2xs">
-                      🔗 Prepositions & Links (Blue)
+                      {t.prepositionsBlue}
                     </span>
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-purple-100 text-purple-950 border border-purple-300 font-extrabold text-[11px] shadow-2xs">
-                      🔤 Nouns & Vocab (Purple)
+                      {t.nounsPurple}
                     </span>
                   </div>
                 </div>
@@ -3923,17 +3926,17 @@ export default function App() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-black uppercase tracking-wider">
-                          100% Complete!
+                          {t.completeBadge}
                         </span>
                         <span className="text-xs text-emerald-100 font-semibold">
-                          {currentStory.sentences.length} of {currentStory.sentences.length} Solved
+                          {currentStory.sentences.length} {t.ofWord} {currentStory.sentences.length} {t.solved}
                         </span>
                       </div>
                       <h3 className="text-base sm:text-lg font-black tracking-tight mt-0.5">
-                        Challenge a friend to beat your time!
+                        {t.challengeFriendHeading}
                       </h3>
                       <p className="text-xs text-emerald-100/90 leading-snug">
-                        Share this story with a friend or student and see if they can finish faster than you!
+                        {t.challengeFriendDesc}
                       </p>
                     </div>
                   </div>
@@ -3944,7 +3947,7 @@ export default function App() {
                       className="w-full sm:w-auto px-5 py-2.5 bg-white hover:bg-emerald-50 active:scale-95 text-emerald-950 font-black text-xs sm:text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <Share2 className="w-4 h-4 text-emerald-700" />
-                      <span>Challenge a Friend</span>
+                      <span>{t.challengeFriendBtn}</span>
                     </button>
                   </div>
                 </div>
@@ -4027,7 +4030,7 @@ export default function App() {
                               : 'bg-blue-50 border-blue-200 text-blue-700'
                           }`}
                         >
-                          {line.speaker === 'A' ? '👩 Speaker A (Sofia)' : '👨 Speaker B (Marco)'}
+                          {line.speaker === 'A' ? t.speakerASofia : t.speakerBMarco}
                         </span>
                       </div>
                     )}
@@ -4124,7 +4127,10 @@ export default function App() {
                           />
                         </div>
                       ) : practiceMode === 'cloze' && clozeData ? (
-                        <div className="text-base sm:text-lg font-semibold text-slate-900 leading-relaxed select-text">
+                        <div
+                          className="text-base sm:text-lg font-semibold text-slate-900 leading-relaxed select-text"
+                          dir={isRtlLanguage(currentStory?._meta?.targetLang || targetLang) ? 'rtl' : 'ltr'}
+                        >
                           {line.target.split(' ').map((word, wIdx) => {
                             const { lead, core, trail } = splitWordPunctuation(word);
                             const clean = core || word;
@@ -4169,10 +4175,10 @@ export default function App() {
                                     className={`px-2 py-0.5 text-center font-bold text-sm rounded-lg transition-all outline-none ${inputClass}`}
                                     title={
                                       isExact
-                                        ? `Correct: "${clean}" — Tap ✓ to view definition & notes`
+                                        ? `${clean} — ${t.tapWordHint}`
                                         : isHighlighterMode
-                                        ? `Missing ${grammarBadge}`
-                                        : 'Type the missing word'
+                                        ? `${grammarBadge}`
+                                        : t.typeMissingWord
                                     }
                                   />
                                   {isExact && (
@@ -4240,10 +4246,10 @@ export default function App() {
                                   }`}
                                   title={
                                     hl?.translation
-                                      ? `${core}: ${hl.translation}${hl.note ? ` (${hl.note})` : ''} — Tap to edit highlight`
+                                      ? `${core}: ${hl.translation}${hl.note ? ` (${hl.note})` : ''}`
                                       : isHighlighterMode
-                                      ? `${grammarBadge}: "${core}" — Tap for definition & notes`
-                                      : 'Tap word for definition & notes'
+                                      ? `${grammarBadge}: "${core}" — ${t.tapWordHint}`
+                                      : t.tapWordHint
                                   }
                                 >
                                   {core}
@@ -4294,7 +4300,10 @@ export default function App() {
                           </div>
                         </div>
                       ) : (
-                        <div className="text-base sm:text-lg font-semibold text-emerald-900 leading-relaxed select-text">
+                        <div
+                          className="text-base sm:text-lg font-semibold text-emerald-900 leading-relaxed select-text"
+                          dir={isRtlLanguage(currentStory?._meta?.targetLang || targetLang) ? 'rtl' : 'ltr'}
+                        >
                           {line.target.split(' ').map((word, wIdx) => {
                             const { lead, core, trail } = splitWordPunctuation(word);
                             if (!core) {
@@ -4339,10 +4348,10 @@ export default function App() {
                                   }`}
                                   title={
                                     hl?.translation
-                                      ? `${core}: ${hl.translation}${hl.note ? ` (${hl.note})` : ''} — Tap to edit highlight`
+                                      ? `${core}: ${hl.translation}${hl.note ? ` (${hl.note})` : ''}`
                                       : isHighlighterMode
-                                      ? `${grammarBadge}: "${core}" — Tap to add notes / flashcard`
-                                      : 'Tap word to highlight / add notes'
+                                      ? `${grammarBadge}: "${core}" — ${t.tapWordHint}`
+                                      : t.tapWordHint
                                   }
                                 >
                                   {core}
@@ -4356,7 +4365,10 @@ export default function App() {
 
                       {/* English / Base Translation or Vocabulary Insights */}
                       {practiceMode === 'scrambleVoice' && !scrambleVoiceSolved.has(index) ? null : (
-                        <div className="text-xs sm:text-sm text-slate-600 mt-1.5 font-normal leading-relaxed">
+                        <div
+                          className="text-xs sm:text-sm text-slate-600 mt-1.5 font-normal leading-relaxed"
+                          dir={isRtlLanguage(currentStory?._meta?.baseLang || baseLang) ? 'rtl' : 'ltr'}
+                        >
                           {baseLang === targetLang
                             ? line.en.replace(/lexical\s*insights/gi, 'Vocabulary')
                             : line.en}
@@ -4367,7 +4379,7 @@ export default function App() {
                       {recordingIndex === index && (
                         <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold animate-pulse shadow-xs">
                           <span className="w-2 h-2 rounded-full bg-rose-600 animate-ping" />
-                          <span>Listening... take your time (stops after 5s silence or tap mic)</span>
+                          <span>{t.recordingStatusText}</span>
                         </div>
                       )}
 
@@ -4466,7 +4478,7 @@ export default function App() {
                               ? 'bg-amber-600 hover:bg-amber-700 text-white ring-2 ring-amber-400 animate-pulse'
                               : 'bg-emerald-600 hover:bg-emerald-700 text-white'
                           }`}
-                          title={playingUserAudioIndex === index ? 'Stop replay' : t.playRecordedVoice}
+                          title={playingUserAudioIndex === index ? t.stopReplay : t.playRecordedVoice}
                         >
                           {playingUserAudioIndex === index ? (
                             <Square className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
@@ -4493,18 +4505,18 @@ export default function App() {
                           <Share2 className="w-4 h-4 text-white" />
                         </div>
                         <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-100/90 px-1.5 py-0.5 rounded">
-                          Share Story
+                          {t.shareStory}
                         </span>
                       </div>
                       <h4 className="font-bold text-slate-900 text-sm leading-snug">
                         {practiceMode !== 'off' && activeSolvedCount === currentStory.sentences.length
-                          ? 'Challenge a friend to beat your time!'
-                          : 'Share this story with a friend or student'}
+                          ? t.challengeFriendHeading
+                          : t.shareCardHeading}
                       </h4>
                       <p className="text-xs text-slate-600 mt-1 leading-snug">
                         {practiceMode !== 'off' && activeSolvedCount === currentStory.sentences.length
-                          ? 'Send this story so they can practice and beat your time!'
-                          : 'Recipients immediately open, read, and practice this exact story in 1 click!'}
+                          ? t.shareCardBeatDesc
+                          : t.shareCardDesc}
                       </p>
                     </div>
                     <div className="pt-3">
@@ -4514,7 +4526,7 @@ export default function App() {
                         className="w-full px-3.5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-xs hover:shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         <Share2 className="w-3.5 h-3.5" />
-                        <span>Share / Email Story</span>
+                        <span>{t.shareEmailStoryBtn}</span>
                       </button>
                     </div>
                   </div>
@@ -4524,6 +4536,7 @@ export default function App() {
                     <SponsorAd
                       placement="in-content"
                       targetLang={currentStory._meta?.targetLang || targetLang}
+                      baseLang={baseLang}
                       hasSubstantialContent={Boolean(currentStory && currentStory.sentences && currentStory.sentences.length >= 3)}
                       onSpeakText={(txt) => speakText(txt)}
                       className="h-full flex flex-col justify-between"
@@ -4541,13 +4554,13 @@ export default function App() {
                       <div>
                         <h4 className="font-bold text-slate-900 text-sm leading-tight">
                           {practiceMode !== 'off' && activeSolvedCount === currentStory.sentences.length
-                            ? 'Challenge a friend to beat your time!'
-                            : 'Share this story with a friend or student'}
+                            ? t.challengeFriendHeading
+                            : t.shareCardHeading}
                         </h4>
                         <p className="text-xs text-slate-600 mt-0.5 leading-snug">
                           {practiceMode !== 'off' && activeSolvedCount === currentStory.sentences.length
-                            ? 'Send this story to see if they can beat your time!'
-                            : 'Pre-loads the full story, audio, and exercises in 1 click!'}
+                            ? t.shareCardBeatDesc
+                            : t.shareCardDesc}
                         </p>
                       </div>
                     </div>
@@ -4557,13 +4570,14 @@ export default function App() {
                       className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
                     >
                       <Share2 className="w-3.5 h-3.5" />
-                      <span>Share / Email Story</span>
+                      <span>{t.shareEmailStoryBtn}</span>
                     </button>
                   </div>
 
                   <SponsorAd
                     placement="mobile-compact"
                     targetLang={currentStory._meta?.targetLang || targetLang}
+                    baseLang={baseLang}
                     hasSubstantialContent={Boolean(currentStory && currentStory.sentences && currentStory.sentences.length >= 3)}
                     onSpeakText={(txt) => speakText(txt)}
                   />
@@ -4575,6 +4589,7 @@ export default function App() {
           {/* Site Footer with AdSense Policy Links & Responsive Banner */}
           <AppFooter
             targetLang={currentStory?._meta?.targetLang || targetLang}
+            baseLang={baseLang}
             onOpenLegal={(tab) => {
               setLegalTab(tab);
               setIsLegalOpen(true);
@@ -4617,7 +4632,7 @@ export default function App() {
               ? 'text-emerald-700 bg-emerald-50 font-bold'
               : 'text-slate-600 hover:text-slate-900 font-medium'
           }`}
-          title="Build new story or change language (Swipe left to go to Read/Play)"
+          title={t.navBuildTitle}
         >
           <Sparkles
             className={`w-5 h-5 mb-0.5 ${
@@ -4626,7 +4641,7 @@ export default function App() {
                 : 'text-slate-500'
             }`}
           />
-          <span className="text-[11px] tracking-tight leading-none">Build</span>
+          <span className="text-[11px] tracking-tight leading-none">{t.navBuild}</span>
         </button>
 
         {/* 2. PLAY */}
@@ -4638,7 +4653,7 @@ export default function App() {
               ? 'text-emerald-700 bg-emerald-50 font-bold'
               : 'text-slate-600 hover:text-slate-900 font-medium'
           }`}
-          title="Play & practice exercises (Swipe to change)"
+          title={t.navPlayOptionsTitle}
         >
           <Gamepad2
             className={`w-5 h-5 mb-0.5 ${
@@ -4647,7 +4662,7 @@ export default function App() {
                 : 'text-slate-500'
             }`}
           />
-          <span className="text-[11px] tracking-tight leading-none">Play Options</span>
+          <span className="text-[11px] tracking-tight leading-none">{t.navPlayOptions}</span>
         </button>
 
         {/* 3. READ/PLAY */}
@@ -4659,7 +4674,7 @@ export default function App() {
               ? 'text-emerald-700 bg-emerald-50 font-bold'
               : 'text-slate-600 hover:text-slate-900 font-medium'
           }`}
-          title="Read and play current story (Swipe to change)"
+          title={t.navReadPlayTitle}
         >
           <BookOpen
             className={`w-5 h-5 mb-0.5 ${
@@ -4668,7 +4683,7 @@ export default function App() {
                 : 'text-slate-500'
             }`}
           />
-          <span className="text-[11px] tracking-tight leading-none">Read/Play</span>
+          <span className="text-[11px] tracking-tight leading-none">{t.navReadPlay}</span>
         </button>
 
         {/* 4. LIBRARY */}
@@ -4680,14 +4695,14 @@ export default function App() {
               ? 'text-emerald-700 bg-emerald-50 font-bold'
               : 'text-slate-600 hover:text-slate-900 font-medium'
           }`}
-          title="Open Library of saved stories (Swipe right to Read)"
+          title={t.navLibraryTitle}
         >
           <LibraryIcon
             className={`w-5 h-5 mb-0.5 ${
               isLibraryOpen ? 'text-emerald-600' : 'text-slate-500'
             }`}
           />
-          <span className="text-[11px] tracking-tight leading-none">Library</span>
+          <span className="text-[11px] tracking-tight leading-none">{t.navLibrary}</span>
         </button>
       </nav>
 
@@ -4754,6 +4769,7 @@ export default function App() {
         isOpen={isQuizPrepOpen}
         onClose={() => setIsQuizPrepOpen(false)}
         targetLang={currentStory?._meta?.targetLang || targetLang}
+        baseLang={baseLang}
         storyTitle={currentStory?.title_target}
         isReady={isQuizPrepReady}
       />
@@ -4809,6 +4825,7 @@ export default function App() {
       <LibraryModal
         isOpen={isLibraryOpen}
         onClose={() => setIsLibraryOpen(false)}
+        baseLang={baseLang}
         onSelectStory={(story, filename) => {
           const isSameStory = filename === currentStoryFilename;
           if (!isSameStory) {
@@ -4851,6 +4868,7 @@ export default function App() {
         onClose={() => setIsShareModalOpen(false)}
         story={currentStory}
         targetLang={currentStory?._meta?.targetLang || targetLang}
+        baseLang={baseLang}
       />
 
       {/* Chromebook / Tablet Installation Modal */}
@@ -4862,6 +4880,7 @@ export default function App() {
         isInstalled={isInstalled}
         isChromebook={isChromebook}
         isIOS={isIOS}
+        baseLang={baseLang}
       />
 
       {/* Master Level C2+ Specialties Selection Modal */}
@@ -4879,6 +4898,7 @@ export default function App() {
         isOpen={isComicTourOpen}
         onClose={handleCloseComicTour}
         currentMode={sidebarTab}
+        baseLang={baseLang}
         onSelectMode={(mode) => setSidebarTab(mode)}
       />
 
@@ -4894,6 +4914,7 @@ export default function App() {
         onClose={() => setIsInspectorOpen(false)}
         story={currentStory}
         filename={currentStoryFilename}
+        baseLang={baseLang}
         onOpenStats={() => setIsAnalyticsOpen(true)}
       />
 
@@ -4903,7 +4924,7 @@ export default function App() {
           role="status"
           onClick={() => setWelcomeToast(null)}
           className="fixed top-4 right-4 z-50 flex items-center gap-3 bg-white/95 backdrop-blur-md border border-emerald-300 text-slate-800 px-4 py-2.5 rounded-2xl shadow-xl animate-in fade-in slide-in-from-top-2 duration-200 cursor-pointer hover:bg-emerald-50/50 transition"
-          title="Click to dismiss"
+          title={t.dismissBtn}
         >
           <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
             <CheckCircle className="w-5 h-5 text-[#008450]" />
@@ -4921,7 +4942,7 @@ export default function App() {
               setWelcomeToast(null);
             }}
             className="p-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition ml-1"
-            title="Dismiss"
+            title={t.dismissBtn}
           >
             <X className="w-4 h-4" />
           </button>
@@ -4950,7 +4971,7 @@ export default function App() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900 leading-tight">
-                    {errorMessage.code.includes('SHARED') ? 'Shared Story Notice' : 'Story Generation Issue'}
+                    {errorMessage.code.includes('SHARED') ? t.sharedStoryNotice : t.storyGenerationIssue}
                   </h3>
                   <div className="flex flex-wrap items-center gap-1.5 mt-1">
                     <span className={`font-mono text-[11px] font-black px-2 py-0.5 rounded-md border ${
@@ -4971,7 +4992,7 @@ export default function App() {
               <button
                 onClick={() => setErrorMessage(null)}
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-700 transition cursor-pointer"
-                title="Dismiss"
+                title={t.dismissBtn}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -4994,7 +5015,7 @@ export default function App() {
                 className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 font-bold text-slate-700 transition text-left cursor-pointer"
               >
                 <span className="flex items-center gap-1.5">
-                  <span className="text-slate-400">🔍</span> Technical Diagnostics & Source
+                  <span className="text-slate-400">🔍</span> {t.techDiagnosticsSource}
                 </span>
                 {showErrorDiagnostics ? (
                   <ChevronDown className="w-4 h-4 text-slate-500" />
@@ -5007,19 +5028,19 @@ export default function App() {
                 <div className="p-3 bg-white border-t border-slate-200 space-y-2.5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                     <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Error Code</span>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">{t.errorCodeLabel}</span>
                       <code className="font-mono font-bold text-rose-700">{errorMessage.code}</code>
                     </div>
                     <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Origin / Source</span>
-                      <span className="font-semibold text-slate-800">{errorMessage.source || 'General Application'}</span>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">{t.originSourceLabel}</span>
+                      <span className="font-semibold text-slate-800">{errorMessage.source || 'Querviam'}</span>
                     </div>
                   </div>
 
                   {errorMessage.details && (
                     <div className="space-y-1">
-                      <span className="font-bold text-slate-600 block text-[11px]">Detail Log:</span>
-                      <pre className="p-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px] text-slate-700 whitespace-pre-wrap max-h-32 overflow-y-auto">
+                      <span className="font-bold text-slate-600 block text-[11px]">{t.detailLogLabel}</span>
+                      <pre className="p-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-[11px] text-slate-700 whitespace-pre-wrap max-h-32 overflow-y-auto" dir="ltr">
                         {errorMessage.details}
                       </pre>
                     </div>
@@ -5027,11 +5048,11 @@ export default function App() {
 
                   {errorMessage.modelAttempts && errorMessage.modelAttempts.length > 0 && (
                     <div className="space-y-1">
-                      <span className="font-bold text-slate-600 block text-[11px]">Model Fallback Log:</span>
-                      <div className="space-y-1 max-h-32 overflow-y-auto">
+                      <span className="font-bold text-slate-600 block text-[11px]">{t.modelFallbackLabel}</span>
+                      <div className="space-y-1 max-h-32 overflow-y-auto" dir="ltr">
                         {errorMessage.modelAttempts.map((attempt, idx) => (
                           <div key={idx} className="p-1.5 bg-slate-50 border border-slate-200 rounded text-[11px] font-mono flex items-center justify-between">
-                            <span className="font-bold text-slate-700">{attempt.model} (try {attempt.attempt})</span>
+                            <span className="font-bold text-slate-700">{attempt.model} ({attempt.attempt})</span>
                             <span className="text-rose-600 font-semibold">{attempt.code}</span>
                           </div>
                         ))}
@@ -5050,7 +5071,7 @@ export default function App() {
                   onClick={() => setShowErrorPromptEgg(!showErrorPromptEgg)}
                   className="w-full flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 font-bold text-slate-600 transition text-left cursor-pointer"
                 >
-                  <span>📜 Inspect AI Prompt & Instructions</span>
+                  <span>{t.inspectAiPrompt}</span>
                   {showErrorPromptEgg ? (
                     <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
                   ) : (
@@ -5059,7 +5080,7 @@ export default function App() {
                 </button>
                 {showErrorPromptEgg && (
                   <div className="p-3 bg-white border-t border-slate-200">
-                    <pre className="max-h-36 overflow-y-auto whitespace-pre-wrap font-mono text-[11px] text-slate-600">
+                    <pre className="max-h-36 overflow-y-auto whitespace-pre-wrap font-mono text-[11px] text-slate-600" dir="ltr">
                       {errorMessage.prompt}
                     </pre>
                   </div>
@@ -5073,17 +5094,17 @@ export default function App() {
                 type="button"
                 onClick={handleCopyErrorDiagnostics}
                 className="w-full sm:w-auto flex-1 flex items-center justify-center gap-1.5 py-2 px-3 border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
-                title="Copy error report with code and source to clipboard"
+                title={t.copyDiagnostic}
               >
                 {copiedErrorDiagnostics ? (
                   <>
                     <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span className="text-emerald-700">Copied Diagnostic</span>
+                    <span className="text-emerald-700">{t.copiedDiagnostic}</span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Copy Diagnostic</span>
+                    <span>{t.copyDiagnostic}</span>
                   </>
                 )}
               </button>
@@ -5096,7 +5117,7 @@ export default function App() {
                 }}
                 className="w-full sm:w-auto flex-1 py-2 px-3 bg-[#008450] hover:bg-[#006e43] text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer active:scale-95"
               >
-                Try Again
+                {t.tryAgain}
               </button>
 
               <button
@@ -5104,7 +5125,7 @@ export default function App() {
                 onClick={() => setErrorMessage(null)}
                 className="w-full sm:w-auto py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
               >
-                Dismiss
+                {t.dismissBtn}
               </button>
             </div>
           </div>
@@ -5119,10 +5140,12 @@ export default function App() {
         isOpen={isLegalOpen}
         onClose={() => setIsLegalOpen(false)}
         initialTab={legalTab}
+        baseLang={baseLang}
       />
 
       {/* Cookie & Privacy Consent Banner (GDPR / AdSense Compliant) */}
       <CookieConsentBanner
+        baseLang={baseLang}
         onOpenPrivacy={() => {
           setLegalTab('privacy');
           setIsLegalOpen(true);

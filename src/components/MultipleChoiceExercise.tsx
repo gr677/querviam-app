@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { splitWordPunctuation } from '../utils/textUtils';
-import { getT } from '../utils/translations';
+import { getT, isRtlLanguage } from '../utils/translations';
 import { CustomHighlight, VerbItem } from '../types';
 import { classifyWordGrammar, getGrammarBadgeLabel, getGrammarStyle } from '../utils/grammarHighlighter';
 import { isChinese, segmentChinese, CHINESE_DISTRACTORS_FALLBACK, ChineseSegment } from '../utils/chineseUtils';
@@ -47,6 +47,7 @@ export const MultipleChoiceExercise: React.FC<MultipleChoiceExerciseProps> = ({
   onWordClick,
 }) => {
   const t = getT(baseLang);
+  const targetIsRtl = isRtlLanguage(targetLang);
   const [exercise, setExercise] = useState<MultipleChoiceState | null>(null);
   const [isSolved, setIsSolved] = useState(isInitiallySolved);
   const [wrongOption, setWrongOption] = useState<string | null>(null);
@@ -184,7 +185,7 @@ export const MultipleChoiceExercise: React.FC<MultipleChoiceExerciseProps> = ({
   };
 
   return (
-    <div className="my-1">
+    <div className="my-1" dir={targetIsRtl ? 'rtl' : 'ltr'}>
       {/* Sentence with blank slot */}
       <div className="text-base sm:text-lg font-semibold text-slate-900 leading-relaxed tracking-normal select-text">
         {exercise.isChinese && exercise.chineseSegments ? (
@@ -231,13 +232,13 @@ export const MultipleChoiceExercise: React.FC<MultipleChoiceExerciseProps> = ({
                     title={
                       isSolved
                         ? hl?.translation
-                          ? `${hiddenWord}: ${hl.translation}${hl.note ? ` (${hl.note})` : ''} — Tap to edit highlight`
+                          ? `${hiddenWord}: ${hl.translation}${hl.note ? ` (${hl.note})` : ''}`
                           : isHighlighterMode
-                          ? `${grammarBadge}: "${hiddenWord}" — Tap for definition & notes`
-                          : 'Correct! Tap word to view definition & notes'
+                          ? `${grammarBadge}: "${hiddenWord}"`
+                          : `${t.correct} — ${t.tapWordHint}`
                         : isHighlighterMode
-                        ? `Fill in the blank (${grammarBadge})`
-                        : 'Choose the missing Chinese word'
+                        ? `${t.chooseCorrectWord} (${grammarBadge})`
+                        : t.chooseCorrectWord
                     }
                   >
                     {isSolved ? (
@@ -291,10 +292,10 @@ export const MultipleChoiceExercise: React.FC<MultipleChoiceExerciseProps> = ({
                   }`}
                   title={
                     hl?.translation
-                      ? `${seg.text}: ${hl.translation}${hl.note ? ` (${hl.note})` : ''} — Tap to edit highlight`
+                      ? `${seg.text}: ${hl.translation}${hl.note ? ` (${hl.note})` : ''}`
                       : isHighlighterMode
-                      ? `${grammarBadge}: "${seg.text}" — Tap for definition & notes`
-                      : 'Tap word for definition & notes'
+                      ? `${grammarBadge}: "${seg.text}" — ${t.tapWordHint}`
+                      : t.tapWordHint
                   }
                 >
                   {seg.text}
@@ -346,13 +347,13 @@ export const MultipleChoiceExercise: React.FC<MultipleChoiceExerciseProps> = ({
                     title={
                       isSolved
                         ? hl?.translation
-                          ? `${hiddenWord}: ${hl.translation}${hl.note ? ` (${hl.note})` : ''} — Tap to edit highlight`
+                          ? `${hiddenWord}: ${hl.translation}${hl.note ? ` (${hl.note})` : ''}`
                           : isHighlighterMode
-                          ? `${grammarBadge}: "${hiddenWord}" — Tap for definition & notes`
-                          : 'Correct! Tap word to view definition & notes'
+                          ? `${grammarBadge}: "${hiddenWord}"`
+                          : `${t.correct} — ${t.tapWordHint}`
                         : isHighlighterMode
-                        ? `Fill in the blank (${grammarBadge})`
-                        : 'Fill in the blank'
+                        ? `${t.chooseCorrectWord} (${grammarBadge})`
+                        : t.chooseCorrectWord
                     }
                   >
                     {isSolved ? (
@@ -408,10 +409,10 @@ export const MultipleChoiceExercise: React.FC<MultipleChoiceExerciseProps> = ({
                   }`}
                   title={
                     hl?.translation
-                      ? `${wCore}: ${hl.translation}${hl.note ? ` (${hl.note})` : ''} — Tap to edit highlight`
+                      ? `${wCore}: ${hl.translation}${hl.note ? ` (${hl.note})` : ''}`
                       : isHighlighterMode
-                      ? `${grammarBadge}: "${wCore}" — Tap for definition & notes`
-                      : 'Tap word for definition & notes'
+                      ? `${grammarBadge}: "${wCore}" — ${t.tapWordHint}`
+                      : t.tapWordHint
                   }
                 >
                   {wCore}
@@ -452,7 +453,7 @@ export const MultipleChoiceExercise: React.FC<MultipleChoiceExerciseProps> = ({
       </div>
 
       {/* Feedback message */}
-      <div className="text-xs font-semibold mt-2 min-h-[1.25rem]">
+      <div className="text-xs font-semibold mt-2 min-h-[1.25rem]" dir={isRtlLanguage(baseLang) ? 'rtl' : 'ltr'}>
         {isSolved ? (
           <span className="text-emerald-700">{t.wellDoneCorrect}</span>
         ) : wrongOption ? (

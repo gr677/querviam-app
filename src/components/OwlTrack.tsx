@@ -81,9 +81,7 @@ export const OwlTrack: React.FC<OwlTrackProps> = ({
     }
   }, [totalQuestions, solvedCount]);
 
-  const tooltipText = isPractice
-    ? t.owlScoreTooltip(solvedCount, totalQuestions)
-    : `Reading: ${solvedCount} of ${totalQuestions} sentences completed`;
+  const tooltipText = t.owlScoreTooltip(solvedCount, totalQuestions);
 
   return (
     <div
@@ -129,7 +127,7 @@ export const OwlTrack: React.FC<OwlTrackProps> = ({
                 } ${
                   isSolved ? 'animate-owl-drop opacity-100 scale-100' : 'opacity-25 hover:opacity-40'
                 }`}
-                title={`Sentence ${idx + 1}`}
+                title={t.sentenceLabel(idx + 1).replace(/[()]/g, '')}
               >
                 {isSolved ? OWL_ACTIVE_SVG : OWL_GHOST_SVG}
               </div>

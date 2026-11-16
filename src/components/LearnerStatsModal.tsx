@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { getLearnerStats } from '../utils/storage';
 import { LearnerStats } from '../types';
+import { getT, getHtmlLangCode } from '../utils/translations';
 
 interface LearnerStatsModalProps {
   isOpen: boolean;
@@ -31,6 +32,8 @@ export const LearnerStatsModal: React.FC<LearnerStatsModalProps> = ({
   onOpenGlobalAnalytics,
 }) => {
   const [stats, setStats] = useState<LearnerStats | null>(null);
+  const t = getT(baseLang);
+  const htmlLang = getHtmlLangCode(baseLang);
 
   useEffect(() => {
     if (isOpen) {
@@ -45,7 +48,7 @@ export const LearnerStatsModal: React.FC<LearnerStatsModalProps> = ({
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
     const iso = d.toISOString().split('T')[0];
-    const dayName = d.toLocaleDateString('en-US', { weekday: 'narrow' });
+    const dayName = d.toLocaleDateString(htmlLang, { weekday: 'narrow' });
     const isToday = i === 6;
     const isActive = stats.activeDates.includes(iso);
     return { iso, dayName, isToday, isActive };
@@ -53,24 +56,24 @@ export const LearnerStatsModal: React.FC<LearnerStatsModalProps> = ({
 
   // Calculate estimated CEFR Level
   const words = stats.totalWordsRead;
-  let level = 'A1 (Intro)';
+  let level = 'A1';
   let nextGoal = 100;
   let percent = Math.min(100, Math.round((words / 100) * 100));
 
   if (words >= 1000) {
-    level = 'C1 (Advanced)';
+    level = 'C1+';
     nextGoal = 2000;
     percent = Math.min(100, Math.round((words / 2000) * 100));
   } else if (words >= 500) {
-    level = 'B2 (Upper Int)';
+    level = 'B2';
     nextGoal = 1000;
     percent = Math.min(100, Math.round(((words - 500) / 500) * 100));
   } else if (words >= 250) {
-    level = 'B1 (Intermediate)';
+    level = 'B1';
     nextGoal = 500;
     percent = Math.min(100, Math.round(((words - 250) / 250) * 100));
   } else if (words >= 100) {
-    level = 'A2 (Elementary)';
+    level = 'A2';
     nextGoal = 250;
     percent = Math.min(100, Math.round(((words - 100) / 150) * 100));
   }
@@ -88,9 +91,9 @@ export const LearnerStatsModal: React.FC<LearnerStatsModalProps> = ({
               <Flame className="w-6 h-6 text-amber-200 fill-amber-200 animate-bounce-short" />
             </div>
             <div>
-              <h3 className="font-bold text-base leading-tight">Learner Stats & Progress</h3>
+              <h3 className="font-bold text-base leading-tight">{t.statsModalTitle}</h3>
               <p className="text-xs text-amber-100">
-                {targetLang} Learning Journey
+                {targetLang} — {t.learningJourney}
               </p>
             </div>
           </div>
@@ -99,6 +102,7 @@ export const LearnerStatsModal: React.FC<LearnerStatsModalProps> = ({
             type="button"
             onClick={onClose}
             className="p-2 rounded-xl text-amber-100 hover:text-white hover:bg-white/10 transition"
+            title={t.close}
           >
             <X className="w-5 h-5" />
           </button>
@@ -112,20 +116,20 @@ export const LearnerStatsModal: React.FC<LearnerStatsModalProps> = ({
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-2xl font-black text-amber-900 tracking-tight">
-                    {stats.currentStreak} {stats.currentStreak === 1 ? 'Day' : 'Days'}
+                    {stats.currentStreak} {stats.currentStreak === 1 ? t.daySingular : t.daysPlural}
                   </span>
                   <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
-                    Daily Streak 🔥
+                    {t.dailyStreakTitle}
                   </span>
                 </div>
                 <p className="text-xs text-amber-800 font-medium mt-0.5">
-                  Best streak: {stats.bestStreak} {stats.bestStreak === 1 ? 'day' : 'days'}
+                  {t.bestStreakLabel(stats.bestStreak)} {stats.bestStreak === 1 ? t.daySingular : t.daysPlural}
                 </p>
               </div>
 
               <div className="text-right">
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                  Last 7 Days
+                  {t.last7Days}
                 </span>
                 <div className="flex items-center gap-1.5 mt-1">
                   {last7Days.map((d, idx) => (
@@ -159,13 +163,13 @@ export const LearnerStatsModal: React.FC<LearnerStatsModalProps> = ({
             <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
               <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800">
                 <BookOpen className="w-4 h-4 text-emerald-600" />
-                <span>Words Read</span>
+                <span>{t.wordsReadLabel}</span>
               </div>
               <div className="text-xl font-black text-slate-900">
-                {stats.totalWordsRead.toLocaleString()}
+                {stats.totalWordsRead.toLocaleString(htmlLang)}
               </div>
               <p className="text-[11px] text-slate-500">
-                Across {stats.totalStoriesCompleted} completed {stats.totalStoriesCompleted === 1 ? 'story' : 'stories'}
+                {t.storiesFound(stats.totalStoriesCompleted)}
               </p>
             </div>
 
@@ -173,13 +177,13 @@ export const LearnerStatsModal: React.FC<LearnerStatsModalProps> = ({
             <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
               <div className="flex items-center gap-1.5 text-xs font-bold text-blue-800">
                 <Layers className="w-4 h-4 text-blue-600" />
-                <span>Vocabulary</span>
+                <span>{t.vocabularyLabel}</span>
               </div>
               <div className="text-xl font-black text-slate-900">
-                {stats.knownWordsCount} <span className="text-xs font-semibold text-slate-500">learned</span>
+                {stats.knownWordsCount} <span className="text-xs font-semibold text-slate-500">{t.learnedLabel}</span>
               </div>
               <p className="text-[11px] text-slate-500">
-                Active memory retention
+                {t.activeMemoryRetention}
               </p>
             </div>
 
@@ -187,13 +191,13 @@ export const LearnerStatsModal: React.FC<LearnerStatsModalProps> = ({
             <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
               <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-800">
                 <Clock className="w-4 h-4 text-indigo-600" />
-                <span>Practice Time</span>
+                <span>{t.practiceTimeLabel}</span>
               </div>
               <div className="text-xl font-black text-slate-900">
-                {stats.practiceMinutes} <span className="text-xs font-semibold text-slate-500">min</span>
+                {stats.practiceMinutes} <span className="text-xs font-semibold text-slate-500">{t.minUnit}</span>
               </div>
               <p className="text-[11px] text-slate-500">
-                Immersion & audio reading
+                {t.immersionAudioReading}
               </p>
             </div>
 
@@ -201,13 +205,13 @@ export const LearnerStatsModal: React.FC<LearnerStatsModalProps> = ({
             <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
               <div className="flex items-center gap-1.5 text-xs font-bold text-purple-800">
                 <Award className="w-4 h-4 text-purple-600" />
-                <span>Reading Level</span>
+                <span>{t.readingLevelLabel}</span>
               </div>
               <div className="text-xl font-black text-slate-900">
-                {level}
+                CEFR {level}
               </div>
               <p className="text-[11px] text-slate-500">
-                Next goal: {nextGoal} words
+                {t.nextGoalWords(nextGoal)}
               </p>
             </div>
           </div>
@@ -217,7 +221,7 @@ export const LearnerStatsModal: React.FC<LearnerStatsModalProps> = ({
             <div className="flex items-center justify-between text-xs font-bold text-purple-900">
               <span className="flex items-center gap-1">
                 <TrendingUp className="w-3.5 h-3.5 text-purple-600" />
-                <span>Reading Fluency Milestone</span>
+                <span>{t.readingFluencyMilestone}</span>
               </span>
               <span>{percent}%</span>
             </div>
@@ -228,16 +232,16 @@ export const LearnerStatsModal: React.FC<LearnerStatsModalProps> = ({
               />
             </div>
             <div className="flex justify-between text-[10px] font-semibold text-purple-700/80">
-              <span>A1 Beginner</span>
-              <span>B1 Intermediate</span>
-              <span>C1 Advanced</span>
+              <span>{t.diffBeginner}</span>
+              <span>{t.diffIntermediate}</span>
+              <span>{t.diffAdvanced}</span>
             </div>
           </div>
 
           {/* Motivation Quote */}
           <div className="text-center py-1">
             <p className="text-xs text-slate-500 italic">
-              &ldquo;Language fluency is built in small daily sentences, not giant weekend sessions.&rdquo;
+              {t.motivationQuote}
             </p>
           </div>
         </div>
@@ -252,9 +256,9 @@ export const LearnerStatsModal: React.FC<LearnerStatsModalProps> = ({
                 onOpenGlobalAnalytics();
               }}
               className="px-3 py-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer flex items-center gap-1.5 active:scale-95"
-              title="View global server statistics across all learners and language pair revenue"
+              title="Analytics"
             >
-              <span>📊 Global Platform & Revenue Stats</span>
+              <span>📊 Analytics</span>
             </button>
           ) : <div />}
           <button
@@ -262,7 +266,7 @@ export const LearnerStatsModal: React.FC<LearnerStatsModalProps> = ({
             onClick={onClose}
             className="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer active:scale-95"
           >
-            Keep Learning
+            {t.keepLearningBtn}
           </button>
         </div>
       </div>

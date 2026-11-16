@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Clock, Loader2, CheckCircle2, HelpCircle, Volume2, BookOpen } from 'lucide-react';
+import { getT } from '../utils/translations';
 
 interface QuizPrepAdvertModalProps {
   isOpen: boolean;
   onClose: () => void;
   targetLang: string;
+  baseLang?: string;
   storyTitle?: string;
   isReady?: boolean;
 }
@@ -13,9 +15,11 @@ export const QuizPrepAdvertModal: React.FC<QuizPrepAdvertModalProps> = ({
   isOpen,
   onClose,
   targetLang,
+  baseLang = 'English',
   storyTitle = 'this story',
   isReady = true,
 }) => {
+  const t = getT(baseLang);
   const [secondsRemaining, setSecondsRemaining] = useState(2);
   const [canClose, setCanClose] = useState(false);
 
@@ -61,17 +65,17 @@ export const QuizPrepAdvertModal: React.FC<QuizPrepAdvertModalProps> = ({
             </div>
             <div>
               <h3 className="text-sm font-black tracking-wide uppercase flex items-center gap-2">
-                <span>Preparing Comprehension Quiz</span>
+                <span>{t.quizPrepTitle}</span>
               </h3>
               <p className="text-[11px] text-emerald-200">
-                1 question per sentence • Shuffled order • Audio hints
+                {t.quizPrepSubtitle}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 border border-white/30 text-xs font-black">
             <Clock className="w-3.5 h-3.5 text-amber-300 animate-spin" />
-            <span>{secondsRemaining > 0 ? `${secondsRemaining}s...` : 'Ready!'}</span>
+            <span>{secondsRemaining > 0 ? `${secondsRemaining}s...` : t.quizPrepReady}</span>
           </div>
         </div>
 
@@ -82,29 +86,25 @@ export const QuizPrepAdvertModal: React.FC<QuizPrepAdvertModalProps> = ({
             <div className="flex items-center justify-between">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-900 font-bold text-[10px] tracking-wider uppercase">
                 <BookOpen className="w-3 h-3 text-emerald-700" />
-                <span>Pedagogical Review</span>
+                <span>{t.pedagogicalReview}</span>
               </span>
               <span className="text-[11px] font-bold text-slate-500">
-                {targetLang} Immersion
+                {t.immersionTag(targetLang)}
               </span>
             </div>
 
             <div className="space-y-2">
               <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                <span>Active Recall & Ear-Training Tips:</span>
+                <span>{t.activeRecallTipsTitle}</span>
               </h4>
               <ul className="text-xs text-slate-600 space-y-1.5 leading-relaxed">
                 <li className="flex items-start gap-2">
                   <Volume2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                  <span>
-                    Tap the speaker icon on any question to hear the original sentence spoken naturally.
-                  </span>
+                  <span>{t.activeRecallTip1}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <HelpCircle className="w-3.5 h-3.5 text-teal-600 shrink-0 mt-0.5" />
-                  <span>
-                    Click any highlighted word inside questions or answers to see definitions, grammar breakdown, and slow pronunciation.
-                  </span>
+                  <span>{t.activeRecallTip2}</span>
                 </li>
               </ul>
             </div>
@@ -116,12 +116,12 @@ export const QuizPrepAdvertModal: React.FC<QuizPrepAdvertModalProps> = ({
               {secondsRemaining > 0 || !isReady ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin text-emerald-700" />
-                  <span>Assembling questions for &ldquo;{storyTitle}&rdquo;...</span>
+                  <span>{t.assemblingQuestions(storyTitle)}</span>
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span className="text-emerald-800 font-black">All questions crafted and ready!</span>
+                  <span className="text-emerald-800 font-black">{t.allQuestionsReady}</span>
                 </>
               )}
             </div>
@@ -135,9 +135,7 @@ export const QuizPrepAdvertModal: React.FC<QuizPrepAdvertModalProps> = ({
             </div>
 
             <div className="text-xs text-slate-600 font-medium">
-              {secondsRemaining > 0 || !isReady
-                ? 'Synthesizing grammar distractors and audio hints...'
-                : 'Questions ready! Click Start Quiz to begin testing your comprehension.'}
+              {secondsRemaining > 0 || !isReady ? t.synthesizingWait : t.questionsReadyDesc}
             </div>
           </div>
 
@@ -149,7 +147,7 @@ export const QuizPrepAdvertModal: React.FC<QuizPrepAdvertModalProps> = ({
               className="w-full py-3.5 bg-[#008450] hover:bg-[#006b40] text-white text-base font-black rounded-2xl shadow-lg hover:shadow-xl transition cursor-pointer active:scale-98 flex items-center justify-center gap-2 ring-4 ring-emerald-200"
             >
               <CheckCircle2 className="w-5 h-5 text-emerald-200" />
-              <span>Done • Start Quiz</span>
+              <span>{t.doneStartQuiz}</span>
             </button>
           ) : (
             <button
@@ -160,8 +158,8 @@ export const QuizPrepAdvertModal: React.FC<QuizPrepAdvertModalProps> = ({
               <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
               <span>
                 {secondsRemaining > 0
-                  ? `Preparing questions... (${secondsRemaining}s)`
-                  : 'Finalizing quiz...'}
+                  ? t.preparingQuestionsSec(secondsRemaining)
+                  : t.finalizingQuiz}
               </span>
             </button>
           )}

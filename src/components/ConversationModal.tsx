@@ -15,6 +15,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { StoryData, ConversationMessage } from '../types';
+import { getT, isRtlLanguage } from '../utils/translations';
 
 interface ConversationModalProps {
   isOpen: boolean;
@@ -99,6 +100,8 @@ export const ConversationModal: React.FC<ConversationModalProps> = ({
   }, [messages, isLoading]);
 
   if (!isOpen || !story) return null;
+  const t = getT(baseLang);
+  const targetIsRtl = isRtlLanguage(targetLang);
 
   const handleSendMessage = async (customText?: string) => {
     const textToSend = (customText || inputText).trim();
@@ -312,13 +315,13 @@ export const ConversationModal: React.FC<ConversationModalProps> = ({
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <h3 className="font-bold text-sm sm:text-base leading-tight truncate">Conversation Partner</h3>
+                <h3 className="font-bold text-sm sm:text-base leading-tight truncate">{t.conversationPartnerTitle}</h3>
                 <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-700/80 text-emerald-100 border border-emerald-500/40 shrink-0">
                   {difficulty}
                 </span>
               </div>
               <p className="text-[11px] sm:text-xs text-emerald-200/90 truncate">
-                About: <span className="italic font-serif">{story.title_target}</span>
+                {t.aboutPrefix} <span className="italic font-serif" dir={targetIsRtl ? 'rtl' : 'ltr'}>{story.title_target}</span>
               </p>
             </div>
           </div>
@@ -328,7 +331,7 @@ export const ConversationModal: React.FC<ConversationModalProps> = ({
               type="button"
               onClick={handleResetConversation}
               className="p-1.5 sm:p-2 rounded-xl text-emerald-100 hover:text-white hover:bg-white/10 transition cursor-pointer"
-              title="Reset conversation"
+              title={t.resetBtn}
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -336,7 +339,7 @@ export const ConversationModal: React.FC<ConversationModalProps> = ({
               type="button"
               onClick={onClose}
               className="p-1.5 sm:p-2 rounded-xl text-white bg-white/20 hover:bg-white/30 active:scale-95 transition flex items-center justify-center cursor-pointer shadow-xs"
-              title="Close chat"
+              title={t.close}
             >
               <X className="w-5 h-5 stroke-[2.5]" />
             </button>
@@ -376,7 +379,7 @@ export const ConversationModal: React.FC<ConversationModalProps> = ({
                         : 'bg-white border border-slate-200 text-slate-900 rounded-tl-xs'
                     }`}
                   >
-                    <p>{msg.targetText}</p>
+                    <p dir={targetIsRtl ? 'rtl' : 'ltr'}>{msg.targetText}</p>
 
                     {/* Translation for assistant message */}
                     {!isUser && isBaseRevealed && msg.baseText && (
@@ -395,7 +398,7 @@ export const ConversationModal: React.FC<ConversationModalProps> = ({
                         className="inline-flex items-center gap-1 text-slate-500 hover:text-emerald-700 transition font-medium"
                       >
                         <Volume2 className="w-3.5 h-3.5" />
-                        <span>Listen</span>
+                        <span>{t.listenVerb}</span>
                       </button>
 
                       {msg.baseText && (
@@ -412,12 +415,12 @@ export const ConversationModal: React.FC<ConversationModalProps> = ({
                           {isBaseRevealed ? (
                             <>
                               <EyeOff className="w-3.5 h-3.5" />
-                              <span>Hide</span>
+                              <span>{t.hideBtn}</span>
                             </>
                           ) : (
                             <>
                               <Eye className="w-3.5 h-3.5" />
-                              <span>Translate</span>
+                              <span>{t.translateBtn}</span>
                             </>
                           )}
                         </button>
@@ -430,7 +433,7 @@ export const ConversationModal: React.FC<ConversationModalProps> = ({
                     <div className="flex items-start gap-1.5 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 animate-fade-in shadow-2xs">
                       <Lightbulb className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                       <div>
-                        <strong className="font-semibold text-amber-950">Coach Tip: </strong>
+                        <strong className="font-semibold text-amber-950">{t.coachTipLabel} </strong>
                         <span>{msg.feedbackTip}</span>
                       </div>
                     </div>
@@ -443,7 +446,7 @@ export const ConversationModal: React.FC<ConversationModalProps> = ({
           {isLoading && (
             <div className="flex items-center gap-2 max-w-[75%] mr-auto text-xs text-slate-500 bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs animate-pulse">
               <Bot className="w-4 h-4 text-emerald-600 animate-spin" />
-              <span>Thinking in {targetLang}...</span>
+              <span>{t.thinkingInLang(targetLang)}</span>
             </div>
           )}
 
@@ -454,13 +457,14 @@ export const ConversationModal: React.FC<ConversationModalProps> = ({
         {messages.length <= 2 && (
           <div className="px-4 py-2 bg-slate-100/90 border-t border-slate-200 flex flex-wrap gap-1.5 text-xs shrink-0">
             <span className="font-semibold text-slate-500 text-[11px] self-center mr-1">
-              Suggestions:
+              {t.suggestionsLabel}
             </span>
             {starterChips.map((chip, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={() => handleSendMessage(chip)}
+                dir={targetIsRtl ? 'rtl' : 'ltr'}
                 className="px-2.5 py-1 bg-white hover:bg-emerald-50 hover:text-emerald-900 hover:border-emerald-300 border border-slate-300 text-slate-700 rounded-lg transition font-medium shadow-2xs active:scale-95"
               >
                 {chip}
@@ -477,14 +481,14 @@ export const ConversationModal: React.FC<ConversationModalProps> = ({
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
               </span>
-              <span>Listening in {targetLang}... 5s pause timeout (take your time)</span>
+              <span>{t.listeningInLang(targetLang)}</span>
             </div>
             <button
               type="button"
               onClick={stopRecording}
               className="text-[11px] font-bold text-rose-700 hover:text-rose-950 underline cursor-pointer"
             >
-              Done Speaking
+              {t.doneSpeaking}
             </button>
           </div>
         )}
@@ -501,9 +505,9 @@ export const ConversationModal: React.FC<ConversationModalProps> = ({
             type="button"
             onClick={onClose}
             className="px-2.5 py-2.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition cursor-pointer shrink-0 sm:hidden"
-            title="Exit chat"
+            title={t.exitBtn}
           >
-            Exit
+            {t.exitBtn}
           </button>
 
           <button
@@ -514,16 +518,17 @@ export const ConversationModal: React.FC<ConversationModalProps> = ({
                 ? 'bg-rose-500 text-white border-rose-600 animate-pulse'
                 : 'bg-slate-100 text-slate-600 hover:text-emerald-700 hover:bg-slate-200 border-slate-200'
             }`}
-            title={isRecording ? 'Listening (5s pause detection)... Tap to stop' : 'Tap to speak your answer'}
+            title={isRecording ? t.stopListeningTitle : t.speakTopicTitle}
           >
             {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
           </button>
 
           <input
             type="text"
+            dir={targetIsRtl ? 'rtl' : 'ltr'}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder={`Type or speak in ${targetLang}...`}
+            placeholder={t.typeOrSpeakIn(targetLang)}
             className="flex-1 min-w-0 px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white text-slate-900 transition"
           />
 
@@ -531,7 +536,6 @@ export const ConversationModal: React.FC<ConversationModalProps> = ({
             type="submit"
             disabled={!inputText.trim() || isLoading}
             className="p-2.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-40 disabled:pointer-events-none text-white rounded-xl transition shadow-xs font-semibold cursor-pointer active:scale-95 shrink-0"
-            title="Send message"
           >
             <Send className="w-5 h-5" />
           </button>

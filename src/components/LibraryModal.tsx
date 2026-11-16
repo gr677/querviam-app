@@ -24,6 +24,7 @@ import {
   deleteLocalStory,
   saveLocalStory,
 } from '../utils/storage';
+import { getT } from '../utils/translations';
 
 interface LibraryModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ interface LibraryModalProps {
   onStoryDeleted?: (filename: string) => void;
   onShareStory?: (story: StoryData) => void;
   isOnline: boolean;
+  baseLang?: string;
 }
 
 export const LibraryModal: React.FC<LibraryModalProps> = ({
@@ -41,6 +43,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
   onStoryDeleted,
   onShareStory,
   isOnline,
+  baseLang = 'English',
 }) => {
   const [libraryTab, setLibraryTab] = useState<'my-stories' | 'starter-samples'>('my-stories');
   const [localItems, setLocalItems] = useState<LibraryItemSummary[]>([]);
@@ -84,6 +87,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
   }, [isOpen, isOnline]);
 
   if (!isOpen) return null;
+  const t = getT(baseLang);
 
   const handleLoadItem = async (item: LibraryItemSummary) => {
     try {
@@ -114,7 +118,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
 
   const handleDeleteItem = (filename: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('Are you sure you want to remove this story from your device library?')) return;
+    if (!confirm(t.deleteConfirm(filename))) return;
 
     deleteLocalStory(filename);
     setLocalItems((prev) => prev.filter((it) => it.filename !== filename));
@@ -325,7 +329,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               }`}
             >
               <Lock className="w-3 h-3 text-emerald-600" />
-              <span>My Stories ({localItems.length})</span>
+              <span>{t.myStoriesTab} ({localItems.length})</span>
             </button>
             <button
               type="button"
@@ -337,7 +341,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               }`}
             >
               <Sparkles className="w-3 h-3 text-amber-600" />
-              <span>Samples ({starterItems.length})</span>
+              <span>{t.samplesTab} ({starterItems.length})</span>
             </button>
           </div>
 
@@ -345,7 +349,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
           <div className="flex items-center gap-1 shrink-0">
             <label
               className="p-1.5 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer transition flex items-center"
-              title="Import JSON Story"
+              title={t.importStoryBtn}
             >
               <Upload className="w-3.5 h-3.5" />
               <input type="file" accept=".json" className="hidden" onChange={handleImportJson} />
@@ -354,7 +358,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               type="button"
               onClick={onClose}
               className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-              aria-label="Close"
+              aria-label={t.close}
             >
               <X className="w-5 h-5" />
             </button>
@@ -369,15 +373,15 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
             </div>
             <div className="min-w-0">
               <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2 truncate">
-                <span>Story Library</span>
+                <span>{t.libraryTitle}</span>
                 {!isOnline && (
                   <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 shrink-0">
-                    <WifiOff className="w-3 h-3" /> Offline
+                    <WifiOff className="w-3 h-3" /> {t.offlineBadge}
                   </span>
                 )}
               </h3>
               <p className="text-xs text-slate-500">
-                Practice, review, and manage your private bilingual stories
+                {t.librarySubtitle}
               </p>
             </div>
           </div>
@@ -385,7 +389,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
           <div className="flex items-center gap-2 shrink-0">
             <label className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg cursor-pointer transition">
               <Upload className="w-3.5 h-3.5" />
-              <span>Import Story</span>
+              <span>{t.importStoryBtn}</span>
               <input
                 type="file"
                 accept=".json"
@@ -398,7 +402,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               type="button"
               onClick={onClose}
               className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-              aria-label="Close"
+              aria-label={t.close}
             >
               <X className="w-5 h-5" />
             </button>
@@ -418,9 +422,9 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               }`}
             >
               <Lock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span>My Stories ({localItems.length})</span>
+              <span>{t.myStoriesTab} ({localItems.length})</span>
               <span className="text-[10px] px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-bold">
-                Private
+                {t.privateBadge}
               </span>
             </button>
 
@@ -434,13 +438,13 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               }`}
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-              <span>Samples ({starterItems.length})</span>
+              <span>{t.samplesTab} ({starterItems.length})</span>
             </button>
           </div>
 
           <div className="flex items-center gap-1.5 text-[11px] text-emerald-800 font-medium">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Private Device Storage</span>
+            <span>{t.privateDeviceStorageTitle}</span>
           </div>
         </div>
 
@@ -451,11 +455,11 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               <div className="flex items-center gap-2">
                 <Lock className="w-4 h-4 text-emerald-700 shrink-0" />
                 <span>
-                  <strong>100% Private to This Device:</strong> Your generated and imported stories are saved exclusively in your browser. They are not stored in any common pool or visible to other learners.
+                  <strong>{t.privateDeviceStorageTitle}:</strong> {t.privateDeviceStorageDesc}
                 </span>
               </div>
               <span className="hidden md:inline-block px-2 py-0.5 bg-white/90 border border-emerald-300 rounded-lg text-[10px] font-bold text-emerald-800">
-                🔒 Device Protected
+                🔒 {t.privateBadge}
               </span>
             </div>
           ) : (
@@ -463,11 +467,11 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-700 shrink-0" />
                 <span>
-                  <strong>Built-in Starter Samples:</strong> Curated language templates in Italian, Spanish, French, German, Norwegian, Hungarian, and Czech for practice and inspiration.
+                  <strong>{t.starterSamplesTitle}:</strong> {t.starterSamplesDesc}
                 </span>
               </div>
               <span className="hidden md:inline-block px-2 py-0.5 bg-white/90 border border-amber-300 rounded-lg text-[10px] font-bold text-amber-800">
-                🌟 Read-only Presets
+                🌟 {t.sampleBadge}
               </span>
             </div>
           )}
@@ -480,7 +484,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               <Search className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search title, translation, topic..."
+                placeholder={t.searchLibraryPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-8 pr-7 py-1.5 sm:py-2 text-xs sm:text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#008450] focus:border-transparent"
@@ -490,7 +494,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
                   type="button"
                   onClick={() => setSearchQuery('')}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer"
-                  title="Clear search"
+                  title={t.clearFiltersBtn}
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -508,7 +512,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               }`}
             >
               <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-700" />
-              <span>Filters</span>
+              <span>{t.filtersBtn}</span>
               {activeFilterCount > 0 && (
                 <span className="w-4 h-4 rounded-full bg-[#008450] text-white text-[10px] flex items-center justify-center font-bold">
                   {activeFilterCount}
@@ -520,7 +524,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
             <div className="hidden sm:flex items-center gap-1.5 shrink-0 bg-white border border-slate-200 p-1 rounded-xl shadow-2xs">
               <span className="text-[11px] font-bold text-slate-500 pl-2 pr-1 flex items-center gap-1">
                 <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
-                <span>Sort:</span>
+                <span>{t.sortLabel}</span>
               </span>
               <button
                 type="button"
@@ -530,10 +534,9 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
                     ? 'bg-emerald-700 text-white shadow-2xs'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
-                title={`Sort by Date (${sortBy === 'date-desc' ? 'Newest first' : 'Oldest first'})`}
               >
                 <Calendar className="w-3.5 h-3.5" />
-                <span>Date {sortBy === 'date-desc' ? '↓ New' : sortBy === 'date-asc' ? '↑ Old' : ''}</span>
+                <span>{t.sortDate} {sortBy === 'date-desc' ? '↓' : sortBy === 'date-asc' ? '↑' : ''}</span>
               </button>
               <button
                 type="button"
@@ -543,9 +546,8 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
                     ? 'bg-emerald-700 text-white shadow-2xs'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
-                title={`Sort by Title (${sortBy === 'title-asc' ? 'A to Z' : 'Z to A'})`}
               >
-                <span>Title {sortBy === 'title-asc' ? 'A–Z' : sortBy === 'title-desc' ? 'Z–A' : ''}</span>
+                <span>{t.sortTitle} {sortBy === 'title-asc' ? 'A–Z' : sortBy === 'title-desc' ? 'Z–A' : ''}</span>
               </button>
             </div>
 
@@ -555,10 +557,10 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
                 className="px-2 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#008450]"
-                aria-label="Sort order"
+                aria-label={t.sortLabel}
               >
-                <option value="date-desc">Date ↓</option>
-                <option value="date-asc">Date ↑</option>
+                <option value="date-desc">{t.sortDate} ↓</option>
+                <option value="date-asc">{t.sortDate} ↑</option>
                 <option value="title-asc">A–Z</option>
                 <option value="title-desc">Z–A</option>
               </select>
@@ -568,7 +570,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
           {/* Active Filter Chips on Mobile */}
           {activeFilters.length > 0 && (
             <div className="flex sm:hidden items-center gap-1.5 overflow-x-auto pt-0.5 no-scrollbar text-xs">
-              <span className="text-[10px] uppercase font-bold text-slate-400 shrink-0">Active:</span>
+              <span className="text-[10px] uppercase font-bold text-slate-400 shrink-0">{t.activeLabel}</span>
               {activeFilters.map((flt) => (
                 <button
                   key={flt.key}
@@ -585,7 +587,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
                 onClick={clearAllFilters}
                 className="text-[11px] text-emerald-700 font-bold underline shrink-0 pl-1 cursor-pointer"
               >
-                Reset
+                {t.resetBtnLabel}
               </button>
             </div>
           )}
@@ -597,7 +599,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               onChange={(e) => setFilterLanguage(e.target.value)}
               className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#008450]"
             >
-              <option value="all">All Languages</option>
+              <option value="all">{t.allLanguages}</option>
               <option value="Italian">Italian</option>
               <option value="Spanish">Spanish</option>
               <option value="French">French</option>
@@ -612,12 +614,12 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               onChange={(e) => setFilterDifficulty(e.target.value)}
               className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#008450]"
             >
-              <option value="all">All Levels</option>
-              <option value="Introduction (A0-A1)">Introduction (A0-A1)</option>
-              <option value="Beginner (A1-A2)">Beginner (A1-A2)</option>
-              <option value="Intermediate (B1-B2)">Intermediate (B1-B2)</option>
-              <option value="Advanced (C1-C2)">Advanced (C1-C2)</option>
-              <option value="Master (Literary & Poetic C2+)">Master (C2+)</option>
+              <option value="all">{t.allLevels}</option>
+              <option value="Introduction (A0-A1)">{t.diffIntro}</option>
+              <option value="Beginner (A1-A2)">{t.diffBeginner}</option>
+              <option value="Intermediate (B1-B2)">{t.diffIntermediate}</option>
+              <option value="Advanced (C1-C2)">{t.diffAdvanced}</option>
+              <option value="Master (Literary & Poetic C2+)">{t.diffMaster}</option>
             </select>
 
             <select
@@ -625,14 +627,14 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               onChange={(e) => setFilterTense(e.target.value)}
               className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#008450]"
             >
-              <option value="all">All Tenses</option>
-              <option value="Present Tense Only">Present Tense</option>
-              <option value="Past Tense (Passato Prossimo)">Past (Passato Prossimo)</option>
-              <option value="Imperfect Tense (Imperfetto)">Imperfect (Imperfetto)</option>
-              <option value="Future Tense (Futuro)">Future</option>
-              <option value="Conditional Tense">Conditional</option>
-              <option value="Subjunctive (Congiuntivo)">Subjunctive</option>
-              <option value="Natural / Mixed Tenses">Natural / Mixed</option>
+              <option value="all">{t.allTenses}</option>
+              <option value="Present Tense Only">{t.tensePresent}</option>
+              <option value="Past Tense (Passato Prossimo)">{t.tensePast}</option>
+              <option value="Imperfect Tense (Imperfetto)">{t.tenseImperfect}</option>
+              <option value="Future Tense (Futuro)">{t.tenseFuture}</option>
+              <option value="Conditional Tense">{t.tenseConditional}</option>
+              <option value="Subjunctive (Congiuntivo)">{t.tenseSubjunctive}</option>
+              <option value="Natural / Mixed Tenses">{t.tenseMixed}</option>
             </select>
 
             <select
@@ -640,11 +642,11 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               onChange={(e) => setFilterLength(e.target.value)}
               className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#008450]"
             >
-              <option value="all">All Lengths</option>
-              <option value="6">Quick (6)</option>
-              <option value="10">Standard (10)</option>
-              <option value="16">Deep Read (16)</option>
-              <option value="22">Epic Read (22)</option>
+              <option value="all">{t.allLengths}</option>
+              <option value="6">{t.lengthShort}</option>
+              <option value="10">{t.lengthMedium}</option>
+              <option value="16">{t.lengthLong}</option>
+              <option value="22">{t.lengthMax}</option>
             </select>
 
             <select
@@ -652,12 +654,9 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               onChange={(e) => setFilterContentType(e.target.value)}
               className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#008450]"
             >
-              <option value="all">All Formats</option>
-              <option value="story">Classic Narrative</option>
-              <option value="discussion">Dialogue</option>
-              <option value="news">News</option>
-              <option value="travel">Travel Journal</option>
-              <option value="history">Historical Tale</option>
+              <option value="all">{t.allFormats}</option>
+              <option value="story">{t.story}</option>
+              <option value="discussion">{t.dialogue}</option>
             </select>
 
             <select
@@ -665,9 +664,9 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               onChange={(e) => setFilterGenre(e.target.value)}
               className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#008450]"
             >
-              <option value="all">All Genres</option>
-              <option value="true">Non-Fiction</option>
-              <option value="false">Fiction</option>
+              <option value="all">{t.allGenres}</option>
+              <option value="true">{t.nonFiction}</option>
+              <option value="false">{t.fiction}</option>
             </select>
 
             {activeFilterCount > 0 && (
@@ -677,7 +676,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
                 className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-rose-700 hover:text-rose-900 hover:bg-rose-50 rounded-lg transition cursor-pointer"
               >
                 <RotateCcw className="w-3 h-3" />
-                <span>Reset All</span>
+                <span>{t.resetAllBtn}</span>
               </button>
             )}
           </div>
@@ -686,8 +685,8 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
         {/* Results summary bar */}
         <div className="px-3.5 sm:px-6 py-1.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[11px] text-slate-500 shrink-0 font-medium">
           <span>
-            {sortedItems.length} {sortedItems.length === 1 ? 'story' : 'stories'} found
-            {activeFilterCount > 0 ? ` · ${activeFilterCount} filter${activeFilterCount > 1 ? 's' : ''} applied` : ''}
+            {t.storiesFound(sortedItems.length)}
+            {activeFilterCount > 0 ? ` · ${activeFilterCount}` : ''}
           </span>
           {activeFilterCount > 0 && (
             <button
@@ -696,7 +695,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               className="text-[#008450] font-bold hover:underline cursor-pointer flex items-center gap-1"
             >
               <RotateCcw className="w-3 h-3" />
-              <span>Clear filters</span>
+              <span>{t.clearFiltersBtn}</span>
             </button>
           )}
         </div>
@@ -705,16 +704,16 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
         <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-100 p-2 sm:p-4">
           {loading ? (
             <div className="py-12 text-center text-slate-500 text-sm">
-              Loading library stories...
+              {t.loadingLibrary}
             </div>
           ) : libraryTab === 'my-stories' && localItems.length === 0 ? (
             <div className="py-12 px-4 text-center max-w-md mx-auto space-y-3">
               <div className="w-12 h-12 mx-auto rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-700">
                 <Lock className="w-6 h-6" />
               </div>
-              <h4 className="text-base font-bold text-slate-800">Your Private Story Library is Empty</h4>
+              <h4 className="text-base font-bold text-slate-800">{t.emptyPrivateLibraryTitle}</h4>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Stories you generate with the AI creator or import from JSON files will be saved privately here on this device. None of your stories are ever shared with or visible to other users.
+                {t.emptyPrivateLibraryDesc}
               </p>
               <button
                 type="button"
@@ -722,12 +721,13 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 rounded-xl transition cursor-pointer"
               >
                 <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
-                <span>Browse Built-in Starter Samples</span>
+                <span>{t.browseStarterSamplesBtn}</span>
               </button>
             </div>
           ) : sortedItems.length === 0 ? (
-            <div className="py-12 text-center text-slate-500 text-sm">
-              No matching stories found. Try changing your search or filters!
+            <div className="py-12 text-center text-slate-500 text-sm space-y-1">
+              <div className="font-bold text-slate-700">{t.noMatchingStoriesTitle}</div>
+              <div className="text-xs">{t.noMatchingStoriesDesc}</div>
             </div>
           ) : (
             sortedItems.map((item) => {
@@ -754,12 +754,12 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
                       )}
                       {item.isStarterSample ? (
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 shrink-0">
-                          Sample
+                          {t.sampleBadge}
                         </span>
                       ) : (
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-0.5 shrink-0">
                           <Lock className="w-2.5 h-2.5 text-emerald-600" />
-                          <span>Private</span>
+                          <span>{t.privateBadge}</span>
                         </span>
                       )}
                     </div>
@@ -792,12 +792,12 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
                       )}
                       {meta.length && (
                         <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-medium bg-slate-100 text-slate-700">
-                          ~{meta.length} sent.
+                          ~{meta.length}
                         </span>
                       )}
                       {meta.isFact !== undefined && (
                         <span className="hidden sm:inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-medium bg-slate-100 text-slate-700">
-                          {meta.isFact ? 'Fact' : 'Fiction'}
+                          {meta.isFact ? t.nonFiction : t.fiction}
                         </span>
                       )}
                     </div>
@@ -808,24 +808,24 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
                       type="button"
                       className="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-[#008450] text-white text-xs font-bold rounded-lg shadow-xs hover:bg-[#006b40] transition cursor-pointer"
                     >
-                      Open
+                      {t.openBtn}
                     </button>
                     {onShareStory && (
                       <button
                         type="button"
                         onClick={(e) => handleShareItem(item, e)}
                         className="p-1 sm:px-2.5 sm:py-1.5 rounded-lg text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95 flex items-center gap-1"
-                        title="Share or email this story"
+                        title={t.shareStoryTitle}
                       >
                         <Share2 className="w-3.5 h-3.5 text-[#008450]" />
-                        <span className="hidden sm:inline">Share</span>
+                        <span className="hidden sm:inline">{t.shareShort}</span>
                       </button>
                     )}
                     <button
                       type="button"
                       onClick={(e) => handleExportJson(item, e)}
                       className="p-1 sm:p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition cursor-pointer"
-                      title="Download story as JSON file"
+                      title="JSON"
                     >
                       <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </button>
@@ -834,7 +834,7 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
                         type="button"
                         onClick={(e) => handleDeleteItem(item.filename, e)}
                         className="p-1 sm:p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                        title="Remove from your private library"
+                        title={t.delete}
                       >
                         <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </button>
@@ -862,15 +862,15 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
                     <SlidersHorizontal className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900 text-sm">Filter Stories</h4>
-                    <p className="text-[11px] text-slate-500">Target language, CEFR level, grammar</p>
+                    <h4 className="font-bold text-slate-900 text-sm">{t.filterStoriesBtn}</h4>
+                    <p className="text-[11px] text-slate-500">{t.targetLangLabel} • {t.difficultyLevel}</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowFiltersMobile(false)}
                   className="p-1 rounded-lg text-slate-400 hover:text-slate-600 transition cursor-pointer"
-                  aria-label="Close filters"
+                  aria-label={t.close}
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -878,13 +878,13 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
 
               <div className="py-3 overflow-y-auto space-y-3 flex-1 text-xs">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Target Language</label>
+                  <label className="block font-bold text-slate-700 mb-1">{t.targetLangLabel}</label>
                   <select
                     value={filterLanguage}
                     onChange={(e) => setFilterLanguage(e.target.value)}
                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#008450]"
                   >
-                    <option value="all">All Languages</option>
+                    <option value="all">{t.allLanguages}</option>
                     <option value="Italian">Italian</option>
                     <option value="Spanish">Spanish</option>
                     <option value="French">French</option>
@@ -896,81 +896,78 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Proficiency Level (CEFR)</label>
+                  <label className="block font-bold text-slate-700 mb-1">{t.difficultyLevel}</label>
                   <select
                     value={filterDifficulty}
                     onChange={(e) => setFilterDifficulty(e.target.value)}
                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#008450]"
                   >
-                    <option value="all">All Levels</option>
-                    <option value="Introduction (A0-A1)">Introduction (A0-A1)</option>
-                    <option value="Beginner (A1-A2)">Beginner (A1-A2)</option>
-                    <option value="Intermediate (B1-B2)">Intermediate (B1-B2)</option>
-                    <option value="Advanced (C1-C2)">Advanced (C1-C2)</option>
-                    <option value="Master (Literary & Poetic C2+)">Master (C2+)</option>
+                    <option value="all">{t.allLevels}</option>
+                    <option value="Introduction (A0-A1)">{t.diffIntro}</option>
+                    <option value="Beginner (A1-A2)">{t.diffBeginner}</option>
+                    <option value="Intermediate (B1-B2)">{t.diffIntermediate}</option>
+                    <option value="Advanced (C1-C2)">{t.diffAdvanced}</option>
+                    <option value="Master (Literary & Poetic C2+)">{t.diffMaster}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Grammar & Tense</label>
+                  <label className="block font-bold text-slate-700 mb-1">{t.tenseFocus}</label>
                   <select
                     value={filterTense}
                     onChange={(e) => setFilterTense(e.target.value)}
                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#008450]"
                   >
-                    <option value="all">All Tenses</option>
-                    <option value="Present Tense Only">Present Tense Only</option>
-                    <option value="Past Tense (Passato Prossimo)">Past (Passato Prossimo)</option>
-                    <option value="Imperfect Tense (Imperfetto)">Imperfect (Imperfetto)</option>
-                    <option value="Future Tense (Futuro)">Future Tense</option>
-                    <option value="Conditional Tense">Conditional Tense</option>
-                    <option value="Subjunctive (Congiuntivo)">Subjunctive</option>
-                    <option value="Natural / Mixed Tenses">Natural / Mixed Tenses</option>
+                    <option value="all">{t.allTenses}</option>
+                    <option value="Present Tense Only">{t.tensePresent}</option>
+                    <option value="Past Tense (Passato Prossimo)">{t.tensePast}</option>
+                    <option value="Imperfect Tense (Imperfetto)">{t.tenseImperfect}</option>
+                    <option value="Future Tense (Futuro)">{t.tenseFuture}</option>
+                    <option value="Conditional Tense">{t.tenseConditional}</option>
+                    <option value="Subjunctive (Congiuntivo)">{t.tenseSubjunctive}</option>
+                    <option value="Natural / Mixed Tenses">{t.tenseMixed}</option>
                   </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Length</label>
+                    <label className="block font-bold text-slate-700 mb-1">{t.storyLength}</label>
                     <select
                       value={filterLength}
                       onChange={(e) => setFilterLength(e.target.value)}
                       className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#008450]"
                     >
-                      <option value="all">All Lengths</option>
-                      <option value="6">Quick (6)</option>
-                      <option value="10">Standard (10)</option>
-                      <option value="16">Deep Read (16)</option>
-                      <option value="22">Epic Read (22)</option>
+                      <option value="all">{t.allLengths}</option>
+                      <option value="6">{t.lengthShort}</option>
+                      <option value="10">{t.lengthMedium}</option>
+                      <option value="16">{t.lengthLong}</option>
+                      <option value="22">{t.lengthMax}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Content Format</label>
+                    <label className="block font-bold text-slate-700 mb-1">{t.formatAndGenre}</label>
                     <select
                       value={filterContentType}
                       onChange={(e) => setFilterContentType(e.target.value)}
                       className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#008450]"
                     >
-                      <option value="all">All Formats</option>
-                      <option value="story">Narrative</option>
-                      <option value="discussion">Dialogue</option>
-                      <option value="news">News</option>
-                      <option value="travel">Travel Journal</option>
-                      <option value="history">Historical Tale</option>
+                      <option value="all">{t.allFormats}</option>
+                      <option value="story">{t.story}</option>
+                      <option value="discussion">{t.dialogue}</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Genre</label>
+                  <label className="block font-bold text-slate-700 mb-1">{t.allGenres}</label>
                   <select
                     value={filterGenre}
                     onChange={(e) => setFilterGenre(e.target.value)}
                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#008450]"
                   >
-                    <option value="all">All Genres</option>
-                    <option value="true">Non-Fiction (Factual)</option>
-                    <option value="false">Fiction (Story)</option>
+                    <option value="all">{t.allGenres}</option>
+                    <option value="true">{t.nonFiction}</option>
+                    <option value="false">{t.fiction}</option>
                   </select>
                 </div>
               </div>
@@ -985,14 +982,14 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
                   className="px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-50 rounded-xl transition cursor-pointer flex items-center gap-1"
                 >
                   <RotateCcw className="w-3 h-3" />
-                  <span>Reset All</span>
+                  <span>{t.resetAllBtn}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowFiltersMobile(false)}
                   className="flex-1 px-4 py-2 bg-[#008450] text-white font-bold text-xs rounded-xl shadow-xs hover:bg-[#006b40] transition cursor-pointer text-center"
                 >
-                  Show {sortedItems.length} {sortedItems.length === 1 ? 'Story' : 'Stories'}
+                  {t.showNStoriesBtn(sortedItems.length)}
                 </button>
               </div>
             </div>

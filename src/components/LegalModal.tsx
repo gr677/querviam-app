@@ -13,20 +13,29 @@ import {
   HelpCircle,
 } from 'lucide-react';
 
+import { getT } from '../utils/translations';
+
 export type LegalTab = 'privacy' | 'terms' | 'about' | 'contact';
 
 interface LegalModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialTab?: LegalTab;
+  baseLang?: string;
 }
 
 export const LegalModal: React.FC<LegalModalProps> = ({
   isOpen,
   onClose,
   initialTab = 'privacy',
+  baseLang = 'English',
 }) => {
+  const t = getT(baseLang);
   const [activeTab, setActiveTab] = useState<LegalTab>(initialTab);
+
+  React.useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab, isOpen]);
 
   if (!isOpen) return null;
 
@@ -50,10 +59,10 @@ export const LegalModal: React.FC<LegalModalProps> = ({
             </div>
             <div>
               <h3 id="legal-modal-title" className="text-base font-bold text-slate-900">
-                Legal, Privacy & Publisher Info
+                {t.legalModalTitle}
               </h3>
               <p className="text-xs text-slate-500 font-medium">
-                Google AdSense policy compliance, privacy protection, and transparent operations
+                {t.legalModalSubtitle}
               </p>
             </div>
           </div>
@@ -61,7 +70,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
             type="button"
             onClick={onClose}
             className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer"
-            title="Close"
+            title={t.close}
           >
             <X className="w-5 h-5" />
           </button>
@@ -79,7 +88,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
             }`}
           >
             <Lock className="w-3.5 h-3.5" />
-            <span>Privacy Policy</span>
+            <span>{t.footerPrivacy}</span>
           </button>
           <button
             type="button"
@@ -91,7 +100,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
             }`}
           >
             <FileText className="w-3.5 h-3.5" />
-            <span>Terms of Service</span>
+            <span>{t.footerTerms}</span>
           </button>
           <button
             type="button"
@@ -103,7 +112,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
             }`}
           >
             <Info className="w-3.5 h-3.5" />
-            <span>About Us</span>
+            <span>{t.footerAbout}</span>
           </button>
           <button
             type="button"
@@ -115,7 +124,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
             }`}
           >
             <Mail className="w-3.5 h-3.5" />
-            <span>Contact & Support</span>
+            <span>{t.footerContact}</span>
           </button>
         </div>
 
@@ -376,14 +385,14 @@ export const LegalModal: React.FC<LegalModalProps> = ({
         {/* Footer */}
         <div className="px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs">
           <span className="text-slate-500 font-medium">
-            © {new Date().getFullYear()} Querviam • All rights reserved
+            {t.footerCopyright(new Date().getFullYear())}
           </span>
           <button
             type="button"
             onClick={onClose}
             className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold transition cursor-pointer"
           >
-            Close
+            {t.close}
           </button>
         </div>
       </div>

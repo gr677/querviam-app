@@ -26,6 +26,7 @@ import {
   EmailProvider,
 } from '../utils/shareUtils';
 import { logAnalyticsEvent } from '../utils/analytics';
+import { getT, isRtlLanguage } from '../utils/translations';
 
 // SVG Logos for email providers
 const GmailIcon: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5 shrink-0' }) => (
@@ -56,6 +57,7 @@ interface ShareStoryModalProps {
   onClose: () => void;
   story: StoryData | null;
   targetLang: string;
+  baseLang?: string;
 }
 
 export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
@@ -63,6 +65,7 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
   onClose,
   story,
   targetLang,
+  baseLang = 'English',
 }) => {
   const [shareUrl, setShareUrl] = useState('');
   const [isShortUrl, setIsShortUrl] = useState(false);
@@ -139,6 +142,8 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
   const [showEmailPreview, setShowEmailPreview] = useState(false);
 
   if (!isOpen || !story) return null;
+  const t = getT(baseLang);
+  const targetIsRtl = isRtlLanguage(targetLang);
 
   const title = story.title_target || 'Story';
   const subtitle = story.title_en || '';
@@ -221,13 +226,14 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
               <Share2 className="w-5 h-5 text-emerald-300" />
             </div>
             <div>
-              <h3 className="font-bold text-base leading-tight">Share & Email Story</h3>
-              <p className="text-xs text-emerald-200/90">Short link that pre-loads immediately in your friend's browser</p>
+              <h3 className="font-bold text-base leading-tight">{t.shareStoryTitleModal}</h3>
+              <p className="text-xs text-emerald-200/90">{t.shareStorySubtitle}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
+            aria-label={t.close}
             className="p-1.5 rounded-xl text-emerald-100 hover:text-white hover:bg-white/15 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -241,20 +247,20 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
             <div className="flex items-center justify-between gap-2 mb-1.5">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 border border-emerald-300">
-                  {targetLang} Story
+                  {targetLang}
                 </span>
                 <span className="text-xs text-emerald-800 font-medium">
-                  {story.sentences?.length || 0} sentences with audio
+                  {t.sentencesCount(story.sentences?.length || 0)}
                 </span>
               </div>
               {isShortUrl && (
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-white px-2 py-0.5 rounded-full border border-emerald-300 shadow-2xs">
                   <Clock className="w-3 h-3 text-emerald-600" />
-                  30-Day Short Link
+                  {t.shortLinkBadge}
                 </span>
               )}
             </div>
-            <h4 className="font-bold text-slate-900 text-sm sm:text-base leading-snug">{title}</h4>
+            <h4 dir={targetIsRtl ? 'rtl' : 'ltr'} className="font-bold text-slate-900 text-sm sm:text-base leading-snug">{title}</h4>
             {subtitle && <p className="text-xs text-slate-600 italic mt-0.5">{subtitle}</p>}
           </div>
 
@@ -266,7 +272,7 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
               className="w-full flex items-center justify-center gap-2 p-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-sm shadow-md active:scale-95 transition cursor-pointer"
             >
               <Share2 className="w-4 h-4 text-emerald-100" />
-              <span>📱 Share with Friends (Gmail, Messages, WhatsApp)</span>
+              <span>📱 {t.shareWithFriendsTab}</span>
             </button>
           )}
 
@@ -278,23 +284,21 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
                   <Mail className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">Email This Story</h4>
-                  <p className="text-[11px] text-slate-500">Pre-fills subject, story preview, and short link</p>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">{t.emailThisStoryTab}</h4>
+                  <p className="text-[11px] text-slate-500">{t.shareStorySubtitle}</p>
                 </div>
               </div>
 
               {/* Saved Provider Indicator */}
               <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200">
-                <span>Default:</span>
-                <span className="font-bold text-slate-800 capitalize">{emailProvider === 'mailto' ? 'Mail App' : emailProvider}</span>
+                <span className="font-bold text-slate-800 capitalize">{emailProvider === 'mailto' ? t.defaultApp : emailProvider}</span>
               </span>
             </div>
 
             {/* Email Provider Selector Tabs */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-[11px] font-bold text-slate-700">Where do you read & send email?</label>
-                <span className="text-[10px] text-slate-600">Remembers your choice</span>
+                <label className="text-[11px] font-bold text-slate-700">{t.whereReadSendEmail}</label>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 bg-slate-200/70 rounded-xl">
                 <button
@@ -305,7 +309,6 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
                       ? 'bg-white text-slate-900 shadow-xs border border-slate-200 ring-1 ring-emerald-500/30'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                   }`}
-                  title="Open directly in Gmail in your browser"
                 >
                   <GmailIcon />
                   <span>Gmail</span>
@@ -319,10 +322,9 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
                       ? 'bg-white text-slate-900 shadow-xs border border-slate-200 ring-1 ring-blue-500/30'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                   }`}
-                  title="Open in Outlook.com / Office 365 Web"
                 >
                   <OutlookIcon />
-                  <span>Outlook Web</span>
+                  <span>Outlook</span>
                 </button>
 
                 <button
@@ -333,7 +335,6 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
                       ? 'bg-white text-slate-900 shadow-xs border border-slate-200 ring-1 ring-purple-500/30'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                   }`}
-                  title="Open in Yahoo Mail Web"
                 >
                   <YahooIcon />
                   <span>Yahoo</span>
@@ -347,10 +348,9 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
                       ? 'bg-white text-slate-900 shadow-xs border border-slate-200 ring-1 ring-slate-400/30'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                   }`}
-                  title="Launch Windows Mail, Thunderbird, or installed desktop app"
                 >
                   <Mail className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-                  <span>Default App</span>
+                  <span>{t.defaultApp}</span>
                 </button>
               </div>
             </div>
@@ -362,7 +362,7 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
                   type="email"
                   value={recipientEmail}
                   onChange={handleRecipientChange}
-                  placeholder="Friend's email (optional)..."
+                  placeholder={t.friendEmailPlaceholder}
                   className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                 />
                 <a
@@ -382,15 +382,15 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>
-                    {isMobile
-                      ? (emailProvider === 'gmail' ? 'Open in Gmail / Mail App' : 'Open in Mail App')
-                      : (emailProvider === 'gmail'
-                          ? 'Open in Gmail'
-                          : emailProvider === 'outlook'
-                          ? 'Open in Outlook Web'
-                          : emailProvider === 'yahoo'
-                          ? 'Open in Yahoo'
-                          : 'Open Mail App')}
+                    {t.openInEmailBtn(
+                      emailProvider === 'gmail'
+                        ? 'Gmail'
+                        : emailProvider === 'outlook'
+                        ? 'Outlook'
+                        : emailProvider === 'yahoo'
+                        ? 'Yahoo'
+                        : t.defaultApp
+                    )}
                   </span>
                   {!isMobile && !isMailtoUrl && <ExternalLink className="w-3 h-3 opacity-80" />}
                 </a>
@@ -407,7 +407,7 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
                         onChange={(e) => setIncludeStoryText(e.target.checked)}
                         className="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5 cursor-pointer"
                       />
-                      <span>Include story text</span>
+                      <span>{t.includeStoryText}</span>
                     </label>
 
                     {includeStoryText && (
@@ -418,7 +418,7 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
                           onChange={(e) => setIncludeTranslations(e.target.checked)}
                           className="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5 cursor-pointer"
                         />
-                        <span>With English translations</span>
+                        <span>{t.withTranslations(baseLang)}</span>
                       </label>
                     )}
                   </div>
@@ -428,59 +428,28 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
                     onClick={() => setShowEmailPreview(!showEmailPreview)}
                     className="text-[11px] font-semibold text-emerald-800 hover:text-emerald-950 underline underline-offset-2 cursor-pointer"
                   >
-                    {showEmailPreview ? 'Hide preview ▲' : 'Preview email message ▼'}
+                    {showEmailPreview ? `${t.hidePreview} ▲` : `${t.previewEmailMsg} ▼`}
                   </button>
                 </div>
 
                 {showEmailPreview && (
                   <div className="mt-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-mono text-slate-700 max-h-44 overflow-y-auto whitespace-pre-wrap leading-relaxed select-text shadow-inner">
                     <div className="font-bold text-slate-900 pb-1.5 border-b border-slate-200/80 mb-1.5 font-sans text-xs">
-                      Subject: {emailContent.subject}
+                      {emailContent.subject}
                     </div>
                     {emailContent.body}
                   </div>
                 )}
               </div>
 
-              {/* Clear Informative Callout */}
-              <div className="flex items-start gap-2 text-[11px] text-slate-600 bg-white/80 p-2.5 rounded-xl border border-slate-200/80 leading-relaxed">
-                <Info className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                <div>
-                  {emailProvider === 'gmail' && (
-                    <span>
-                      <strong>Gmail:</strong>{' '}
-                      {isMobile
-                        ? 'Launches your phone’s Gmail/Mail app directly in compose mode with story text and short link pre-filled so you can send in 1 tap!'
-                        : 'Launches Gmail directly in your browser tab with the story text and short link pre-filled. No unwanted Outlook desktop popups!'}
-                    </span>
-                  )}
-                  {emailProvider === 'outlook' && (
-                    <span>
-                      <strong>Outlook Web:</strong> Opens Outlook.com compose directly in your browser with the story text pre-filled.
-                    </span>
-                  )}
-                  {emailProvider === 'yahoo' && (
-                    <span>
-                      <strong>Yahoo Mail:</strong> Opens Yahoo Mail compose tab with the story pre-filled and ready to send.
-                    </span>
-                  )}
-                  {emailProvider === 'mailto' && (
-                    <span>
-                      <strong>Default App:</strong> Prompts your operating system (Windows/macOS) to launch its registered default mail app (such as Microsoft Outlook or Thunderbird) with the story text pre-populated.
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-[11px] text-slate-500">Want to paste into another chat or app?</span>
+              <div className="flex items-center justify-end pt-1">
                 <button
                   type="button"
                   onClick={handleCopyEmailText}
                   className="text-[11px] font-bold text-emerald-800 hover:text-emerald-950 flex items-center gap-1 cursor-pointer"
                 >
                   {copiedEmailText ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedEmailText ? 'Copied Full Story Email!' : 'Copy Full Story Message'}</span>
+                  <span>{copiedEmailText ? t.copiedFullMsg : t.copyFullStoryMsg}</span>
                 </button>
               </div>
             </div>
@@ -490,13 +459,8 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
-                {isShortUrl ? 'Short Story Link' : 'Direct Story Link'}
+                {isShortUrl ? t.shortStoryLink : t.directStoryLink}
               </label>
-              {isShortUrl && (
-                <span className="text-[10px] text-slate-500 font-medium">
-                  Compact 6-char URL
-                </span>
-              )}
             </div>
             <div className="flex items-center gap-2">
               <input
@@ -515,18 +479,15 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
                 }`}
               >
                 {copiedLink ? <CheckCheck className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                <span>{copiedLink ? 'Copied!' : 'Copy Link'}</span>
+                <span>{copiedLink ? t.copiedExcl : t.copyLink}</span>
               </button>
             </div>
-            <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1">
-              <span>⚡</span> Shared stories stay active for at least a week and renew whenever opened so they can easily be passed on to other learners!
-            </p>
           </div>
 
           {/* Social / Instant Messaging Buttons */}
           <div>
             <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block mb-2">
-              Send Via Messaging
+              {t.sendViaMessaging}
             </span>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <a
@@ -556,7 +517,7 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
                   className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-xs font-bold transition cursor-pointer"
                 >
                   <Share2 className="w-4 h-4 text-slate-700" />
-                  <span>More...</span>
+                  <span>{t.moreBtn}</span>
                 </button>
               ) : (
                 <button
@@ -565,7 +526,7 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
                   className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-xs font-bold transition cursor-pointer"
                 >
                   <Copy className="w-4 h-4 text-slate-700" />
-                  <span>Copy Link</span>
+                  <span>{t.copyLink}</span>
                 </button>
               )}
             </div>
@@ -579,7 +540,7 @@ export const ShareStoryModal: React.FC<ShareStoryModalProps> = ({
             onClick={onClose}
             className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-xl transition cursor-pointer"
           >
-            Close
+            {t.close}
           </button>
         </div>
       </div>

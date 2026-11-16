@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { StoryData, VerbItem, CustomHighlight, SRSCardData } from '../types';
 import { getSRSCards, rateSRSCard, updateLearnerActivity } from '../utils/storage';
+import { getT, isRtlLanguage } from '../utils/translations';
 
 interface FlashcardItem {
   id: string;
@@ -182,6 +183,9 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
   const [isSlowSpeech, setIsSlowSpeech] = useState(false);
   const [knownCardIds, setKnownCardIds] = useState<Set<string>>(new Set());
   const [srsMap, setSrsMap] = useState<Record<string, SRSCardData>>({});
+  const t = getT(baseLang);
+  const targetIsRtl = isRtlLanguage(targetLang);
+  const baseIsRtl = isRtlLanguage(baseLang);
 
   useEffect(() => {
     if (isOpen) {
@@ -444,19 +448,20 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                Flashcards & Vocabulary
+                {t.flashcardsTitle}
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
                   {targetLang}
                 </span>
               </h3>
-              <p className="text-xs text-slate-500 font-medium truncate max-w-[260px] sm:max-w-xs">
-                {story?.title_target || 'Story Cards'}
+              <p className="text-xs text-slate-500 font-medium truncate max-w-[260px] sm:max-w-xs" dir={targetIsRtl ? 'rtl' : 'ltr'}>
+                {story?.title_target || t.cards}
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
+            aria-label={t.close}
             className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -467,7 +472,7 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
         <div className="px-6 py-3 border-b border-slate-100 bg-slate-50/70 space-y-2.5">
           {/* Top row: Word vs Verb category tabs */}
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-            <div className="flex items-center gap-1 bg-slate-200/70 p-1 rounded-xl">
+            <div className="flex flex-wrap items-center gap-1 bg-slate-200/70 p-1 rounded-xl">
               <button
                 type="button"
                 onClick={() => {
@@ -481,7 +486,7 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                All ({cards.length})
+                {t.tabAll} ({cards.length})
               </button>
               <button
                 type="button"
@@ -495,9 +500,9 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
                     ? 'bg-white text-indigo-700 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
-                title="Vocabulary Word Cards (Nouns, adjectives, expressions)"
+                title={t.tabWords}
               >
-                🔤 Words ({wordCardsCount})
+                {t.tabWords} ({wordCardsCount})
               </button>
               <button
                 type="button"
@@ -511,9 +516,9 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
                     ? 'bg-white text-emerald-800 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
-                title="Verb Cards with Conjugations"
+                title={t.tabVerbs}
               >
-                ⚡ Verbs ({verbCardsCount})
+                {t.tabVerbs} ({verbCardsCount})
               </button>
               {customHighlights && customHighlights.length > 0 && (
                 <button
@@ -528,9 +533,9 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
                       ? 'bg-white text-rose-700 shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
-                  title="My Custom Highlighted Words"
+                  title={t.tabHighlights}
                 >
-                  🖍️ Highlights ({customHighlights.length})
+                  {t.tabHighlights} ({customHighlights.length})
                 </button>
               )}
               <button
@@ -545,10 +550,10 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
                     ? 'bg-white text-indigo-700 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
-                title="Cards scheduled for SRS review today"
+                title={t.dueTodayTab}
               >
                 <Clock className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Due Today</span>
+                <span>{t.dueTodayTab}</span>
                 <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                   dueCardsCount > 0 ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-200 text-slate-600'
                 }`}>
@@ -567,9 +572,9 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
                     ? 'bg-white text-amber-700 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
-                title="Mastered Cards"
+                title={t.masteredTab}
               >
-                ⭐ Mastered ({knownCardIds.size})
+                ⭐ {t.masteredTab} ({knownCardIds.size})
               </button>
             </div>
 
@@ -578,7 +583,7 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
                 type="button"
                 onClick={handleShuffle}
                 className="p-1.5 text-slate-500 hover:text-[#008450] hover:bg-white rounded-lg transition border border-transparent hover:border-slate-200 cursor-pointer shadow-2xs"
-                title="Shuffle cards"
+                title={t.shuffle}
               >
                 <Shuffle className="w-4 h-4" />
               </button>
@@ -595,7 +600,7 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
             {/* Direction switcher */}
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                Direction:
+                {t.directionLabel}
               </span>
               <button
                 type="button"
@@ -606,13 +611,13 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
                   setIsFlipped(false);
                 }}
                 className="flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-emerald-50 text-slate-800 hover:text-[#008450] border border-slate-200 rounded-lg font-semibold transition cursor-pointer shadow-2xs"
-                title="Toggle Prompt side: Target Language vs Meaning"
+                title={studyDirection === 'target-to-base' ? t.studyDirectionTargetBase : t.studyDirectionBaseTarget}
               >
                 <ArrowRightLeft className="w-3.5 h-3.5 text-[#008450]" />
                 <span>
                   {studyDirection === 'target-to-base'
-                    ? `${targetLang} ➔ Meaning`
-                    : `Meaning ➔ ${targetLang}`}
+                    ? `${targetLang} ➔ ${t.meaningWord}`
+                    : `${t.meaningWord} ➔ ${targetLang}`}
                 </span>
               </button>
             </div>
@@ -626,10 +631,10 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
                   ? 'bg-amber-100 text-amber-900 border-amber-300 shadow-2xs'
                   : 'bg-white text-slate-600 hover:text-slate-900 border-slate-200'
               }`}
-              title="Toggle slow pronunciation speed (Turtle mode)"
+              title={t.slowAudioTooltip}
             >
               <span>🐢</span>
-              <span>{isSlowSpeech ? 'Slow Audio (Turtle)' : 'Normal Audio'}</span>
+              <span>{isSlowSpeech ? t.slowAudioTooltip : t.normalAudioTooltip}</span>
             </button>
           </div>
         </div>
@@ -643,15 +648,17 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
               </div>
               <h4 className="font-bold text-slate-800 text-sm mb-1">
                 {filterMode === 'learned'
-                  ? 'No Mastered Cards Yet'
-                  : filterMode === 'words'
-                  ? 'No Word Cards Found'
-                  : 'No Verb Cards Found'}
+                  ? t.noMasteredCards
+                  : filterMode === 'due'
+                  ? t.noDueCards
+                  : t.noCardsMatchTitle}
               </h4>
               <p className="text-xs text-slate-500 max-w-xs mx-auto">
                 {filterMode === 'learned'
-                  ? 'Tap the green checkmark on cards you know well to bookmark them here!'
-                  : 'Try selecting the "All" tab to view all extracted cards for this story.'}
+                  ? t.noMasteredCardsDesc
+                  : filterMode === 'due'
+                  ? t.noDueCardsDesc
+                  : t.noCardsMatching}
               </p>
             </div>
           ) : activeCard ? (
@@ -678,10 +685,10 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
                       }`}
                     >
                       {activeCard.isCustomHighlight
-                        ? '🖍️ Highlight Card'
+                        ? `🖍️ ${t.highlightCardBadge}`
                         : activeCard.isVerb
-                        ? '⚡ Verb Card'
-                        : '🔤 Word Card'}
+                        ? `⚡ ${t.verbCardBadge}`
+                        : `🔤 ${t.wordCardBadge}`}
                     </span>
                   </div>
 
@@ -694,7 +701,7 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
                         speakActive(activeCard.targetWord);
                       }}
                       className="p-1.5 rounded-full text-slate-500 hover:text-[#008450] hover:bg-white shadow-2xs transition cursor-pointer"
-                      title={`Pronounce in ${targetLang} ${isSlowSpeech ? '(Slow)' : ''}`}
+                      title={`${t.listen} (${targetLang}${isSlowSpeech ? ` - ${t.slow}` : ''})`}
                     >
                       <Volume2 className="w-4 h-4" />
                     </button>
@@ -708,7 +715,7 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
                           ? 'bg-emerald-600 text-white shadow-xs'
                           : 'text-slate-300 hover:text-emerald-600 hover:bg-white'
                       }`}
-                      title={knownCardIds.has(activeCard.id) ? 'Mark as learning' : 'Mark as mastered'}
+                      title={knownCardIds.has(activeCard.id) ? t.unmarkLearned : t.markLearned}
                     >
                       <Check className="w-4 h-4" />
                     </button>
@@ -719,19 +726,28 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
                 <div className="py-6 text-center">
                   {!isFlipped ? (
                     <div>
-                      <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight capitalize mb-2">
+                      <h2
+                        dir={(isTargetOnFront ? targetIsRtl : baseIsRtl) ? 'rtl' : 'ltr'}
+                        className="text-3xl font-extrabold text-slate-900 tracking-tight capitalize mb-2"
+                      >
                         {frontContent}
                       </h2>
                       <p className="text-xs text-slate-400 flex items-center justify-center gap-1">
-                        <Eye className="w-3.5 h-3.5" /> Tap card or spacebar to reveal
+                        <Eye className="w-3.5 h-3.5" /> {t.tapCardOrSpace}
                       </p>
                     </div>
                   ) : (
                     <div>
-                      <h2 className="text-2xl font-bold text-emerald-950 mb-1">
+                      <h2
+                        dir={(isTargetOnFront ? baseIsRtl : targetIsRtl) ? 'rtl' : 'ltr'}
+                        className="text-2xl font-bold text-emerald-950 mb-1"
+                      >
                         {backContent}
                       </h2>
-                      <p className="text-xs text-emerald-800 font-medium capitalize">
+                      <p
+                        dir={(isTargetOnFront ? targetIsRtl : baseIsRtl) ? 'rtl' : 'ltr'}
+                        className="text-xs text-emerald-800 font-medium capitalize"
+                      >
                         {frontContent}
                       </p>
                     </div>
@@ -741,11 +757,17 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
                 {/* Example sentence context */}
                 {activeCard.contextSentenceTarget && (
                   <div className="pt-3 border-t border-slate-200/60 text-left">
-                    <p className="text-[11px] text-slate-600 italic line-clamp-2">
+                    <p
+                      dir={targetIsRtl ? 'rtl' : 'ltr'}
+                      className="text-[11px] text-slate-600 italic line-clamp-2"
+                    >
                       &ldquo;{activeCard.contextSentenceTarget}&rdquo;
                     </p>
                     {isFlipped && activeCard.contextSentenceEn && (
-                      <p className="text-[10px] text-emerald-700/80 font-medium line-clamp-2 mt-0.5">
+                      <p
+                        dir={baseIsRtl ? 'rtl' : 'ltr'}
+                        className="text-[10px] text-emerald-700/80 font-medium line-clamp-2 mt-0.5"
+                      >
                         &ldquo;{activeCard.contextSentenceEn}&rdquo;
                       </p>
                     )}
@@ -757,14 +779,14 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
               {isFlipped && activeCard.isVerb && activeCard.conjugations && Object.keys(activeCard.conjugations).length > 0 && (
                 <div className="w-full max-w-sm mt-3 p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs space-y-1.5 animate-fade-in">
                   <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                    <span>Key Conjugations</span>
+                    <span>{t.keyConjugationsLabel}</span>
                     <span>{Object.keys(activeCard.conjugations)[0]}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 text-[11px]">
                     {(activeCard.conjugations[Object.keys(activeCard.conjugations)[0]] || []).slice(0, 4).map((f, i) => (
                       <div key={i} className="flex justify-between bg-white px-2 py-1 rounded border border-slate-200/70">
                         <span className="text-slate-400">{f.person}</span>
-                        <span className="font-semibold text-slate-800">{f.form}</span>
+                        <span className="font-semibold text-slate-800" dir={targetIsRtl ? 'rtl' : 'ltr'}>{f.form}</span>
                       </div>
                     ))}
                   </div>
@@ -779,7 +801,7 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
           <div className="px-5 py-3 bg-linear-to-r from-slate-50 via-emerald-50/40 to-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 animate-fade-in shrink-0">
             <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>SRS Memory Recall:</span>
+              <span>{t.srsRecallPrompt}</span>
             </span>
 
             <div className="flex items-center gap-1.5 flex-1 max-w-md justify-end">
@@ -787,33 +809,29 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
                 type="button"
                 onClick={() => handleRateCard('again')}
                 className="flex-1 py-1.5 px-2 bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-300 font-bold text-xs rounded-xl transition cursor-pointer shadow-2xs text-center active:scale-95"
-                title="Forgot. Review again in ~10 minutes"
               >
-                🔴 Again <span className="text-[10px] font-normal opacity-75 hidden sm:inline">(10m)</span>
+                🔴 {t.srsAgain} <span className="text-[10px] font-normal opacity-75 hidden sm:inline">(10m)</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleRateCard('hard')}
                 className="flex-1 py-1.5 px-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs rounded-xl transition cursor-pointer shadow-2xs text-center active:scale-95"
-                title="Difficult recall. Review tomorrow"
               >
-                🟠 Hard <span className="text-[10px] font-normal opacity-75 hidden sm:inline">(1d)</span>
+                🟠 {t.srsHard} <span className="text-[10px] font-normal opacity-75 hidden sm:inline">(1d)</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleRateCard('good')}
                 className="flex-1 py-1.5 px-2 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-300 font-bold text-xs rounded-xl transition cursor-pointer shadow-2xs text-center active:scale-95"
-                title="Good recall. Review in 3 days"
               >
-                🔵 Good <span className="text-[10px] font-normal opacity-75 hidden sm:inline">(3d)</span>
+                🔵 {t.srsGood} <span className="text-[10px] font-normal opacity-75 hidden sm:inline">(3d)</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleRateCard('easy')}
                 className="flex-1 py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-950 border border-emerald-300 font-bold text-xs rounded-xl transition cursor-pointer shadow-2xs text-center active:scale-95"
-                title="Instant recall. Mastered for 1 week"
               >
-                🟢 Easy <span className="text-[10px] font-normal opacity-75 hidden sm:inline">(7d)</span>
+                🟢 {t.srsEasy} <span className="text-[10px] font-normal opacity-75 hidden sm:inline">(7d)</span>
               </button>
             </div>
           </div>
@@ -828,7 +846,7 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition cursor-pointer shadow-2xs"
             >
               <ChevronLeft className="w-4 h-4" />
-              <span>Previous</span>
+              <span>{t.previousBtn}</span>
             </button>
 
             <button
@@ -837,7 +855,7 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#008450] font-bold text-xs transition cursor-pointer border border-emerald-200/70"
             >
               <RotateCcw className="w-4 h-4" />
-              <span>{isFlipped ? 'Show Front' : 'Flip Card'}</span>
+              <span>{isFlipped ? t.showFrontBtn : t.flipCardBtn}</span>
             </button>
 
             <button
@@ -845,7 +863,7 @@ export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({
               onClick={handleNext}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#008450] hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer shadow-xs"
             >
-              <span>Next</span>
+              <span>{t.nextBtn}</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>

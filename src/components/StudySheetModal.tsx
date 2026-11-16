@@ -17,6 +17,7 @@ import {
 import { StoryData, GrammarBite, QuizQuestion } from '../types';
 import { isChinese, segmentChinese } from '../utils/chineseUtils';
 import { SponsorAd } from './SponsorAd';
+import { getT, isRtlLanguage } from '../utils/translations';
 
 interface StudySheetModalProps {
   isOpen: boolean;
@@ -152,6 +153,8 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
   }, [story, uniqueVerbs, ankiExportScope, ankiExportFormat]);
 
   if (!isOpen || !story) return null;
+  const t = getT(baseLang);
+  const targetIsRtl = isRtlLanguage(targetLang);
 
   const handlePrint = () => {
     window.print();
@@ -291,16 +294,17 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                Printable Study Sheet & PDF Export
+                {t.studySheetTitle}
               </h3>
               <p className="text-xs text-slate-500 font-medium">
-                Customize sections, text selection, print worksheets, or export directly to Anki & Quizlet
+                {t.studySheetSubtitle}
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
+            aria-label={t.close}
             className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -311,7 +315,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
         <div className="px-6 py-3 border-b border-slate-100 bg-slate-50/90 flex flex-wrap items-center justify-between gap-3 text-xs print:hidden">
           <div className="flex flex-wrap items-center gap-3">
             <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">
-              Sections:
+              {t.sectionsLabel}
             </span>
 
             {/* 1. Story Text */}
@@ -322,29 +326,29 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                 onChange={(e) => setIncludeStoryText(e.target.checked)}
                 className="accent-[#008450] cursor-pointer"
               />
-              <span>Story Text</span>
+              <span>{t.sectionReadingText}</span>
             </label>
 
-            {/* 2. English Translations */}
-            <label className="flex items-center gap-1.5 cursor-pointer font-medium text-slate-700 select-none" title="Toggle English translations on or off for study or tests">
+            {/* 2. Translations */}
+            <label className="flex items-center gap-1.5 cursor-pointer font-medium text-slate-700 select-none">
               <input
                 type="checkbox"
                 checked={includeTranslations}
                 onChange={(e) => setIncludeTranslations(e.target.checked)}
                 className="accent-[#008450] cursor-pointer"
               />
-              <span className="text-emerald-900 font-semibold">Translations</span>
+              <span className="text-emerald-900 font-semibold">{t.translation}</span>
             </label>
 
             {/* 3. Sentence Numbers */}
-            <label className="flex items-center gap-1.5 cursor-pointer font-medium text-slate-700 select-none" title="Show or hide numbering 1, 2, 3...">
+            <label className="flex items-center gap-1.5 cursor-pointer font-medium text-slate-700 select-none">
               <input
                 type="checkbox"
                 checked={includeSentenceNumbers}
                 onChange={(e) => setIncludeSentenceNumbers(e.target.checked)}
                 className="accent-[#008450] cursor-pointer"
               />
-              <span>Numbers</span>
+              <span>{t.sectionNumbers}</span>
             </label>
 
             {/* 4. Vocabulary Table */}
@@ -355,7 +359,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                 onChange={(e) => setIncludeVocab(e.target.checked)}
                 className="accent-[#008450] cursor-pointer"
               />
-              <span>Vocabulary</span>
+              <span>{t.sectionVocab}</span>
             </label>
 
             {/* 5. Grammar Notes */}
@@ -366,7 +370,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                 onChange={(e) => setIncludeGrammar(e.target.checked)}
                 className="accent-[#008450] cursor-pointer"
               />
-              <span>Grammar</span>
+              <span>{t.grammar}</span>
             </label>
 
             {/* 6. Fill-in Blanks Cloze */}
@@ -377,19 +381,19 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                 onChange={(e) => setIncludeClozeWorksheet(e.target.checked)}
                 className="accent-[#008450] cursor-pointer"
               />
-              <span>Cloze Blanks</span>
+              <span>{t.sectionFillBlanks}</span>
             </label>
 
             {/* 7. Cloze Word Bank (if Cloze enabled) */}
             {includeClozeWorksheet && (
-              <label className="flex items-center gap-1.5 cursor-pointer font-medium text-slate-600 select-none" title="Show word bank bank box above fill-in-blanks">
+              <label className="flex items-center gap-1.5 cursor-pointer font-medium text-slate-600 select-none">
                 <input
                   type="checkbox"
                   checked={includeClozeWordBank}
                   onChange={(e) => setIncludeClozeWordBank(e.target.checked)}
                   className="accent-[#008450] cursor-pointer"
                 />
-                <span className="text-blue-900 font-semibold">Word Bank</span>
+                <span className="text-blue-900 font-semibold">{t.sectionWordBank}</span>
               </label>
             )}
 
@@ -401,7 +405,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                 onChange={(e) => setIncludeQuiz(e.target.checked)}
                 className="accent-[#008450] cursor-pointer"
               />
-              <span>Quiz</span>
+              <span>{t.quiz}</span>
             </label>
 
             {/* 9. Answer Key */}
@@ -412,7 +416,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                 onChange={(e) => setIncludeAnswerKey(e.target.checked)}
                 className="accent-[#008450] cursor-pointer"
               />
-              <span>Answer Key</span>
+              <span>{t.sectionAnswerKey}</span>
             </label>
           </div>
 
@@ -422,7 +426,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
               onClick={() => setLayoutStyle(layoutStyle === 'interlinear' ? 'columns' : 'interlinear')}
               className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 font-semibold text-slate-600 transition cursor-pointer"
             >
-              Layout: {layoutStyle === 'interlinear' ? '📝 Interlinear' : '⚖️ 2-Columns'}
+              {t.layoutLabel} {layoutStyle === 'interlinear' ? t.layoutInterlinear : t.layoutColumns}
             </button>
           </div>
         </div>
@@ -438,7 +442,10 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
             <div className="border-b-2 border-slate-900 pb-5 mb-6 select-text">
               <div className="flex justify-between items-start">
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                  <h1
+                    dir={targetIsRtl ? 'rtl' : 'ltr'}
+                    className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight"
+                  >
                     {story.title_target}
                   </h1>
                   {includeTranslations && (
@@ -449,11 +456,11 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                 </div>
                 <div className="text-right text-xs text-slate-600 space-y-1">
                   <div>
-                    <span className="font-bold text-slate-400">Name: </span>
+                    <span className="font-bold text-slate-400">{t.studentName} </span>
                     <span className="inline-block border-b border-slate-400 w-32" />
                   </div>
                   <div>
-                    <span className="font-bold text-slate-400">Date: </span>
+                    <span className="font-bold text-slate-400">{t.date} </span>
                     <span className="inline-block border-b border-slate-400 w-32" />
                   </div>
                 </div>
@@ -471,7 +478,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                   ⏳ {tense}
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-300">
-                  {story.sentences.length} sentences
+                  {t.sentencesCount(story.sentences.length)}
                 </span>
               </div>
             </div>
@@ -480,12 +487,12 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
             {includeStoryText && (
               <section className="mb-8 select-text">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-[#008450] border-b border-emerald-200 pb-1 mb-4 flex items-center gap-1.5">
-                  <BookOpen className="w-4 h-4" /> Part 1: Reading Text
+                  <BookOpen className="w-4 h-4" /> {t.part1Reading}
                 </h3>
 
                 {layoutStyle === 'columns' && includeTranslations ? (
                   <div className="grid grid-cols-2 gap-4 text-xs sm:text-sm select-text">
-                    <div className="space-y-3 pr-3 border-r border-slate-200">
+                    <div className="space-y-3 pr-3 border-r border-slate-200" dir={targetIsRtl ? 'rtl' : 'ltr'}>
                       <span className="font-bold text-[10px] uppercase text-emerald-800 tracking-wider block">
                         {targetLang}
                       </span>
@@ -500,7 +507,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                     </div>
                     <div className="space-y-3 pl-1 select-text">
                       <span className="font-bold text-[10px] uppercase text-slate-400 tracking-wider block">
-                        English Translation
+                        {baseLang} ({t.translation})
                       </span>
                       {story.sentences.map((s, idx) => (
                         <p key={idx} className="leading-relaxed text-slate-600 italic select-text">
@@ -516,7 +523,10 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                   <div className="space-y-3.5 select-text">
                     {story.sentences.map((s, idx) => (
                       <div key={idx} className="space-y-0.5 select-text">
-                        <p className="text-sm sm:text-base font-semibold text-slate-900 leading-snug select-text">
+                        <p
+                          dir={targetIsRtl ? 'rtl' : 'ltr'}
+                          className="text-sm sm:text-base font-semibold text-slate-900 leading-snug select-text"
+                        >
                           {includeSentenceNumbers && (
                             <span className="text-xs font-bold text-emerald-800 mr-2">{idx + 1}.</span>
                           )}
@@ -538,16 +548,16 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
             {includeVocab && uniqueVerbs.length > 0 && (
               <section className="mb-8 break-inside-avoid select-text">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-[#008450] border-b border-emerald-200 pb-1 mb-3 flex items-center gap-1.5">
-                  <Layers className="w-4 h-4" /> Part 2: Key Vocabulary & Verbs
+                  <Layers className="w-4 h-4" /> {t.part2Vocab}
                 </h3>
 
                 <div className="overflow-x-auto select-text">
                   <table className="w-full text-left text-xs border border-slate-300 select-text">
                     <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
                       <tr>
-                        <th className="p-2 border-r border-slate-300">Infinitive / Word</th>
-                        <th className="p-2 border-r border-slate-300">{baseLang} Meaning</th>
-                        <th className="p-2">Sample Conjugations</th>
+                        <th className="p-2 border-r border-slate-300">{t.infinitive}</th>
+                        <th className="p-2 border-r border-slate-300">{baseLang} — {t.translation}</th>
+                        <th className="p-2">{t.keyConjugationsLabel}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
@@ -562,7 +572,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                           <td className="p-2 text-slate-600 text-[11px] select-text">
                             {v.conjugations ? (
                               Object.entries(v.conjugations)
-                                .map(([t, list]) => `${t}: ${list.slice(0, 3).map((c) => `${c.person ? c.person + ' ' : ''}${c.form}`).join(', ')}`)
+                                .map(([tKey, list]) => `${tKey}: ${list.slice(0, 3).map((c) => `${c.person ? c.person + ' ' : ''}${c.form}`).join(', ')}`)
                                 .join(' | ')
                             ) : (
                               '—'
@@ -580,7 +590,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
             {includeGrammar && story.grammarBites && story.grammarBites.length > 0 && (
               <section className="mb-8 break-inside-avoid select-text">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-amber-800 border-b border-amber-200 pb-1 mb-3 flex items-center gap-1.5">
-                  💡 Part 3: Grammar Focus Deep-Dive
+                  💡 {t.part3Grammar}
                 </h3>
 
                 <div className="space-y-3 select-text">
@@ -603,7 +613,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                       )}
                       {gb.tip && (
                         <p className="text-[10px] text-amber-900 font-medium select-text">
-                          <strong>Note:</strong> {gb.tip}
+                          <strong>{t.tipLabel}:</strong> {gb.tip}
                         </p>
                       )}
                     </div>
@@ -616,14 +626,14 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
             {includeClozeWorksheet && (
               <section className="mb-8 break-inside-avoid select-text">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-[#008450] border-b border-emerald-200 pb-1 mb-3 flex items-center gap-1.5">
-                  <CheckSquare className="w-4 h-4" /> Part 4: Cloze Practice (Fill in the missing words)
+                  <CheckSquare className="w-4 h-4" /> {t.part4FillBlanks}
                 </h3>
 
                 {/* Optional Word Bank Box */}
                 {includeClozeWordBank && clozeWordBank.length > 0 && (
                   <div className="mb-4 p-3 bg-blue-50/70 border border-blue-200 rounded-xl select-text">
                     <span className="text-[10px] font-bold text-blue-800 uppercase tracking-wider block mb-1.5">
-                      📦 Word Bank (Select words to fill in the blanks):
+                      📦 {t.wordBankTitle}:
                     </span>
                     <div className="flex flex-wrap gap-2">
                       {clozeWordBank.map((word, wI) => (
@@ -673,7 +683,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                         </p>
                         {includeClozeHints && (
                           <p className="text-[11px] text-slate-400 italic pl-5 mt-0.5 select-text">
-                            Hint: ({s.en})
+                            {t.hintPrefix} ({s.en})
                           </p>
                         )}
                       </div>
@@ -687,7 +697,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
             {includeQuiz && story.quiz && story.quiz.length > 0 && (
               <section className="mb-8 break-inside-avoid select-text">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-900 border-b border-indigo-200 pb-1 mb-3 flex items-center gap-1.5">
-                  ❓ Part 5: Reading Comprehension Check
+                  ❓ {t.part5Quiz}
                 </h3>
 
                 <div className="space-y-4 select-text">
@@ -741,7 +751,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
             {includeAnswerKey && story.quiz && story.quiz.length > 0 && (
               <section className="mt-8 pt-4 border-t-2 border-dashed border-slate-300 break-inside-avoid select-text">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 select-text">
-                  🔑 Teacher / Self-Study Answer Key
+                  🔑 {t.part6AnswerKey}
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200 select-text">
                   {story.quiz.map((q, idx) => {
@@ -763,6 +773,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
               <SponsorAd
                 placement="in-content"
                 targetLang={targetLang}
+                baseLang={baseLang}
                 hasSubstantialContent={true}
               />
             </div>
@@ -772,7 +783,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
         {/* Modal Action Footer (Hidden during print) */}
         <div className="px-6 py-4 border-t border-slate-100 bg-[#fbfcfd] flex flex-wrap items-center justify-between gap-3 print:hidden select-none">
           <div className="flex items-center gap-2 text-xs text-slate-500">
-            <span>Tip: Select &ldquo;Save as PDF&rdquo; in your browser&apos;s print dialog</span>
+            <span>{t.pdfSaveTip}</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -781,10 +792,10 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
               type="button"
               onClick={() => setIsAnkiExportOpen(true)}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs transition cursor-pointer shadow-xs active:scale-95"
-              title="Export flashcards for Anki, Quizlet, or Memrise"
+              title={t.exportAnkiBtn}
             >
               <Sparkles className="w-4 h-4 text-amber-300" />
-              <span>Export to Anki / Quizlet</span>
+              <span>{t.exportAnkiBtn}</span>
             </button>
 
             <button
@@ -793,7 +804,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition cursor-pointer shadow-2xs"
             >
               {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-              <span>{copied ? 'Copied!' : 'Copy Markdown'}</span>
+              <span>{copied ? t.copied : t.copyMarkdown}</span>
             </button>
 
             <button
@@ -802,7 +813,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition cursor-pointer shadow-2xs"
             >
               <Download className="w-4 h-4" />
-              <span>Download HTML</span>
+              <span>{t.downloadHtml}</span>
             </button>
 
             <button
@@ -811,7 +822,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
               className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#008450] hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer shadow-md active:scale-98"
             >
               <Printer className="w-4 h-4" />
-              <span>Print / Save as PDF</span>
+              <span>{t.printSavePdf}</span>
             </button>
           </div>
         </div>
@@ -834,16 +845,17 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                   </div>
                   <div>
                     <h3 className="text-sm font-black tracking-wide uppercase">
-                      Export to Anki & Quizlet
+                      {t.ankiTitle}
                     </h3>
                     <p className="text-[11px] text-blue-200">
-                      Standard Tab-Separated Flashcard Cards
+                      {t.ankiSubtitle}
                     </p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsAnkiExportOpen(false)}
+                  aria-label={t.close}
                   className="p-1.5 text-white/70 hover:text-white rounded-lg transition cursor-pointer"
                 >
                   <X className="w-5 h-5" />
@@ -855,30 +867,30 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div>
                     <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Content to Include:
+                      {t.sectionsLabel}
                     </label>
                     <select
                       value={ankiExportScope}
                       onChange={(e) => setAnkiExportScope(e.target.value as any)}
                       className="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
-                      <option value="both">All (Vocabulary + Sentences)</option>
-                      <option value="vocab">Vocabulary & Verbs only</option>
-                      <option value="sentences">Story Sentences only</option>
+                      <option value="both">{t.tabAll}</option>
+                      <option value="vocab">{t.sectionVocab}</option>
+                      <option value="sentences">{t.sectionReadingText}</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                      Card Format:
+                      {t.layoutLabel}
                     </label>
                     <select
                       value={ankiExportFormat}
                       onChange={(e) => setAnkiExportFormat(e.target.value as any)}
                       className="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
-                      <option value="tsv">TSV (Tab-separated • Anki & Quizlet standard)</option>
-                      <option value="csv">CSV (Comma-separated)</option>
+                      <option value="tsv">TSV (Anki / Quizlet)</option>
+                      <option value="csv">CSV</option>
                     </select>
                   </div>
                 </div>
@@ -887,10 +899,10 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                 <div>
                   <div className="flex items-center justify-between mb-1 text-xs">
                     <span className="font-bold text-slate-600">
-                      Card Preview ({ankiExportText.split('\n').filter(Boolean).length} cards):
+                      {t.ankiCardsCount(ankiExportText.split('\n').filter(Boolean).length)}
                     </span>
                     <span className="text-[11px] text-slate-400">
-                      Front {ankiExportFormat === 'tsv' ? '⇥ [Tab]' : ','} Back
+                      TSV / CSV
                     </span>
                   </div>
                   <textarea
@@ -901,20 +913,6 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                   />
                 </div>
 
-                {/* Instructions Box */}
-                <div className="p-3 bg-indigo-50/70 border border-indigo-200/80 rounded-xl text-xs space-y-1.5 text-indigo-950">
-                  <div className="font-bold flex items-center gap-1.5 text-indigo-900">
-                    <HelpCircle className="w-3.5 h-3.5" />
-                    <span>How to import in 10 seconds:</span>
-                  </div>
-                  <p className="text-[11px] leading-relaxed">
-                    <strong>In Quizlet:</strong> Click <em>Create study set</em> &rarr; click <em>Import from Word / Excel</em> &rarr; Paste &rarr; Done!
-                  </p>
-                  <p className="text-[11px] leading-relaxed">
-                    <strong>In Anki:</strong> Click <em>Import File</em> &rarr; select the downloaded .tsv file &rarr; Import!
-                  </p>
-                </div>
-
                 {/* Action Buttons */}
                 <div className="flex items-center gap-3 pt-2">
                   <button
@@ -923,7 +921,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                     className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     {ankiCopied ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
-                    <span>{ankiCopied ? 'Copied to Clipboard!' : 'Copy Cards to Clipboard'}</span>
+                    <span>{ankiCopied ? t.copiedClipboard : t.copyJsonBtn.replace('JSON', ankiExportFormat.toUpperCase())}</span>
                   </button>
 
                   <button
@@ -932,7 +930,7 @@ export const StudySheetModal: React.FC<StudySheetModalProps> = ({
                     className="flex-1 py-3 bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Download className="w-4 h-4" />
-                    <span>Download .{ankiExportFormat} File</span>
+                    <span>{t.ankiDownloadCsv} (.{ankiExportFormat})</span>
                   </button>
                 </div>
               </div>

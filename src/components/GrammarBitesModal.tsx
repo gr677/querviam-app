@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Volume2, BookOpen, Lightbulb, Sparkles, Loader2, Copy, Check } from 'lucide-react';
 import { StoryData, GrammarBite } from '../types';
+import { getT, isRtlLanguage } from '../utils/translations';
 
 interface GrammarBitesModalProps {
   isOpen: boolean;
@@ -66,6 +67,8 @@ export const GrammarBitesModal: React.FC<GrammarBitesModalProps> = ({
   };
 
   if (!isOpen || !story) return null;
+  const t = getT(baseLang);
+  const targetIsRtl = isRtlLanguage(targetLang);
 
   return (
     <div
@@ -84,19 +87,20 @@ export const GrammarBitesModal: React.FC<GrammarBitesModalProps> = ({
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                Grammar Focus Deep-Dive
+                {t.grammarTitle}
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
                   {targetLang}
                 </span>
               </h3>
               <p className="text-xs text-slate-500 font-medium truncate max-w-xs">
-                Key patterns and rules found in &ldquo;{story.title_target}&rdquo;
+                {t.grammarDeepDiveDesc(story.title_target)}
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
+            aria-label={t.close}
             className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -109,15 +113,15 @@ export const GrammarBitesModal: React.FC<GrammarBitesModalProps> = ({
             <div className="py-16 text-center space-y-3">
               <Loader2 className="w-8 h-8 text-amber-600 animate-spin mx-auto" />
               <p className="text-sm font-semibold text-slate-700">
-                Analyzing sentence structures and grammar patterns...
+                {t.analyzingGrammar}
               </p>
               <p className="text-xs text-slate-400">
-                Extracting high-yield grammar rules tailored for {targetLang}
+                {targetLang}
               </p>
             </div>
           ) : bites.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
-              <p className="text-sm">No grammar notes available for this story.</p>
+              <p className="text-sm">{t.noGrammarNotes}</p>
             </div>
           ) : (
             bites.map((bite, idx) => (
@@ -139,7 +143,7 @@ export const GrammarBitesModal: React.FC<GrammarBitesModalProps> = ({
                     type="button"
                     onClick={() => handleCopy(bite)}
                     className="p-1.5 rounded-lg text-slate-400 hover:text-amber-700 hover:bg-amber-50 transition cursor-pointer"
-                    title="Copy rule note"
+                    title={t.copyNote}
                   >
                     {copiedId === bite.id ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
                   </button>
@@ -154,12 +158,15 @@ export const GrammarBitesModal: React.FC<GrammarBitesModalProps> = ({
                 {bite.examples && bite.examples.length > 0 && (
                   <div className="p-3 bg-white rounded-xl border border-slate-200/70 space-y-2">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                      In this story:
+                      {t.inThisStoryLabel}
                     </span>
                     {bite.examples.map((ex, exIdx) => (
                       <div key={exIdx} className="flex items-start justify-between gap-2 text-xs">
                         <div className="min-w-0">
-                          <p className="font-semibold text-amber-950 font-serif text-sm">
+                          <p
+                            dir={targetIsRtl ? 'rtl' : 'ltr'}
+                            className="font-semibold text-amber-950 font-serif text-sm"
+                          >
                             &ldquo;{ex.target}&rdquo;
                           </p>
                           <p className="text-slate-500 text-[11px] mt-0.5">
@@ -170,7 +177,7 @@ export const GrammarBitesModal: React.FC<GrammarBitesModalProps> = ({
                           type="button"
                           onClick={() => onSpeak(ex.target)}
                           className="p-1 text-slate-400 hover:text-amber-700 hover:bg-amber-50 rounded transition cursor-pointer shrink-0 mt-0.5"
-                          title="Listen"
+                          title={t.listenVerb}
                         >
                           <Volume2 className="w-3.5 h-3.5" />
                         </button>
@@ -184,7 +191,7 @@ export const GrammarBitesModal: React.FC<GrammarBitesModalProps> = ({
                   <div className="flex items-start gap-2 p-2.5 bg-amber-50 rounded-xl border border-amber-200/60 text-xs text-amber-900">
                     <Lightbulb className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <p className="text-[11px] leading-snug">
-                      <span className="font-bold">Pro Tip: </span>{bite.tip}
+                      <span className="font-bold">{t.tipLabel}: </span>{bite.tip}
                     </p>
                   </div>
                 )}
@@ -196,14 +203,14 @@ export const GrammarBitesModal: React.FC<GrammarBitesModalProps> = ({
         {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-100 bg-[#fbfcfd] flex items-center justify-between">
           <span className="text-xs text-slate-400">
-            {bites.length} grammar points covered
+            {t.grammarPointsCovered(bites.length)}
           </span>
           <button
             type="button"
             onClick={onClose}
             className="px-5 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs transition cursor-pointer shadow-xs"
           >
-            Close
+            {t.close}
           </button>
         </div>
       </div>

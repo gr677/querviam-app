@@ -103,12 +103,12 @@ export const VerbModal: React.FC<VerbModalProps> = ({
 
   const getTenseLabel = (tenseKey: string): string => {
     const l = tenseKey.toLowerCase();
-    if (l === 'present') return 'Present';
-    if (l === 'past') return 'Past (Passato / Pretérito)';
-    if (l === 'future') return 'Future (Futuro)';
-    if (l === 'imperfect') return 'Imperfect';
-    if (l === 'conditional') return 'Conditional';
-    if (l === 'subjunctive') return 'Subjunctive';
+    if (l === 'present') return t.tensePresentShort;
+    if (l === 'past') return t.tensePastShort;
+    if (l === 'future') return t.tenseFutureShort;
+    if (l === 'imperfect') return t.tenseImperfect;
+    if (l === 'conditional') return t.tenseConditional;
+    if (l === 'subjunctive') return t.tenseSubjunctive;
     return tenseKey.charAt(0).toUpperCase() + tenseKey.slice(1);
   };
 
@@ -175,7 +175,7 @@ export const VerbModal: React.FC<VerbModalProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                  Used In Your Story Sentence
+                  {t.usedInStorySentence}
                 </span>
                 {currentVerb.contextForm && (
                   <button
@@ -184,7 +184,7 @@ export const VerbModal: React.FC<VerbModalProps> = ({
                     className="flex items-center gap-1 text-[11px] font-bold text-emerald-800 hover:text-emerald-950 bg-white px-2 py-0.5 rounded-lg border border-emerald-300 transition cursor-pointer shadow-2xs"
                   >
                     <Volume2 className="w-3 h-3" />
-                    <span>Listen</span>
+                    <span>{t.listenVerb}</span>
                   </button>
                 )}
               </div>
@@ -221,7 +221,7 @@ export const VerbModal: React.FC<VerbModalProps> = ({
             {/* 1. Auxiliary Verb */}
             <div className="p-3 bg-slate-50/90 rounded-2xl border border-slate-200/80 shadow-2xs">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
-                ⏱️ Auxiliary Verb
+                {t.auxiliaryVerbLabel}
               </span>
               <div className="font-bold text-slate-900 mt-1 capitalize flex items-center justify-between">
                 <span>{currentVerb.auxiliary || 'avere / have'}</span>
@@ -230,7 +230,7 @@ export const VerbModal: React.FC<VerbModalProps> = ({
                     type="button"
                     onClick={() => onSpeak(currentVerb.auxiliary!)}
                     className="text-slate-400 hover:text-emerald-700"
-                    title={`Listen to ${currentVerb.auxiliary}`}
+                    title={t.listenVerb}
                   >
                     <Volume2 className="w-3.5 h-3.5" />
                   </button>
@@ -241,7 +241,7 @@ export const VerbModal: React.FC<VerbModalProps> = ({
             {/* 2. Past Participle */}
             <div className="p-3 bg-slate-50/90 rounded-2xl border border-slate-200/80 shadow-2xs">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
-                📝 Past Participle
+                {t.pastParticipleLabel}
               </span>
               <div className="font-bold text-slate-900 mt-1 flex items-center justify-between">
                 <span>{currentVerb.pastParticiple || '—'}</span>
@@ -250,7 +250,7 @@ export const VerbModal: React.FC<VerbModalProps> = ({
                     type="button"
                     onClick={() => onSpeak(currentVerb.pastParticiple!)}
                     className="text-slate-400 hover:text-emerald-700"
-                    title={`Listen to ${currentVerb.pastParticiple}`}
+                    title={t.listenVerb}
                   >
                     <Volume2 className="w-3.5 h-3.5" />
                   </button>
@@ -261,7 +261,7 @@ export const VerbModal: React.FC<VerbModalProps> = ({
             {/* 3. Gerund / Present Participle */}
             <div className="p-3 bg-slate-50/90 rounded-2xl border border-slate-200/80 shadow-2xs">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
-                🌊 Gerund (-ing)
+                {t.gerundLabel}
               </span>
               <div className="font-bold text-slate-900 mt-1 flex items-center justify-between">
                 <span>{currentVerb.gerund || '—'}</span>
@@ -270,7 +270,7 @@ export const VerbModal: React.FC<VerbModalProps> = ({
                     type="button"
                     onClick={() => onSpeak(currentVerb.gerund!)}
                     className="text-slate-400 hover:text-emerald-700"
-                    title={`Listen to ${currentVerb.gerund}`}
+                    title={t.listenVerb}
                   >
                     <Volume2 className="w-3.5 h-3.5" />
                   </button>
@@ -281,9 +281,9 @@ export const VerbModal: React.FC<VerbModalProps> = ({
             {/* 4. Preposition Pattern / Valence */}
             <div className="p-3 bg-slate-50/90 rounded-2xl border border-slate-200/80 shadow-2xs">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
-                🔗 Common Preposition
+                {t.commonPrepositionLabel}
               </span>
-              <div className="font-bold text-slate-900 mt-1 truncate" title={currentVerb.prepositionPattern || 'Direct object'}>
+              <div className="font-bold text-slate-900 mt-1 truncate" title={currentVerb.prepositionPattern || ''}>
                 {currentVerb.prepositionPattern || `${currentVerb.infinitive} + obj`}
               </div>
             </div>
@@ -295,10 +295,10 @@ export const VerbModal: React.FC<VerbModalProps> = ({
               <div className="flex items-center gap-2">
                 <h4 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                   <Table className="w-4 h-4 text-[#008450]" />
-                  Conjugation Paradigm
+                  {t.conjugationParadigm}
                 </h4>
                 <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-full border border-emerald-300">
-                  Present • Past • Future
+                  {t.tensePresentShort} • {t.tensePastShort} • {t.tenseFutureShort}
                 </span>
               </div>
 
@@ -312,10 +312,10 @@ export const VerbModal: React.FC<VerbModalProps> = ({
                       ? 'bg-slate-800 text-white shadow-2xs'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
-                  title="Comparative side-by-side table"
+                  title={t.tableView}
                 >
                   <Table className="w-3.5 h-3.5" />
-                  <span>Table View</span>
+                  <span>{t.tableView}</span>
                 </button>
 
                 <button
@@ -326,10 +326,10 @@ export const VerbModal: React.FC<VerbModalProps> = ({
                       ? 'bg-slate-800 text-white shadow-2xs'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
-                  title="Tabbed view per tense"
+                  title={t.tenseTabs}
                 >
                   <Layers className="w-3.5 h-3.5" />
-                  <span>Tense Tabs</span>
+                  <span>{t.tenseTabs}</span>
                 </button>
               </div>
             </div>
@@ -342,7 +342,7 @@ export const VerbModal: React.FC<VerbModalProps> = ({
                     <thead className="bg-slate-100/80 text-slate-700 font-extrabold text-[11px] border-b border-slate-200">
                       <tr>
                         <th className="py-2.5 px-3 sm:px-4 bg-slate-200/60 w-28 sm:w-36 sticky left-0 z-10">
-                          Subject / Pronoun
+                          {t.subjectPronoun}
                         </th>
                         {displayedTenses.map((tKey) => (
                           <th key={tKey} className="py-2.5 px-3 sm:px-4 min-w-[140px]">
@@ -406,7 +406,7 @@ export const VerbModal: React.FC<VerbModalProps> = ({
                                       </span>
                                       {isContextMatch && (
                                         <span className="ml-1.5 text-[9px] text-emerald-800 bg-emerald-100 px-1.5 py-0.2 rounded font-extrabold inline-block shadow-2xs">
-                                          in story
+                                          {t.inStoryBadge}
                                         </span>
                                       )}
                                     </div>
@@ -415,7 +415,7 @@ export const VerbModal: React.FC<VerbModalProps> = ({
                                       type="button"
                                       onClick={() => onSpeak(item.form)}
                                       className="p-1 rounded-md text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 transition cursor-pointer shrink-0"
-                                      title={`Listen to "${item.form}"`}
+                                      title={t.listenVerb}
                                     >
                                       <Volume2 className="w-3.5 h-3.5" />
                                     </button>
@@ -433,7 +433,7 @@ export const VerbModal: React.FC<VerbModalProps> = ({
                 {/* Table Footer Toolbar */}
                 <div className="px-4 py-2.5 bg-slate-50/80 border-t border-slate-200 flex items-center justify-between flex-wrap gap-2 text-xs">
                   <div className="text-[11px] text-slate-500">
-                    💡 Tap any <Volume2 className="w-3 h-3 inline text-slate-400" /> icon to hear pronunciation
+                    {t.tapVolumeHint}
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -443,7 +443,7 @@ export const VerbModal: React.FC<VerbModalProps> = ({
                         onClick={() => setShowMoreTenses(!showMoreTenses)}
                         className="text-[11px] font-bold text-slate-700 hover:text-slate-900 px-2.5 py-1 rounded-lg bg-white border border-slate-200 transition cursor-pointer shadow-2xs"
                       >
-                        {showMoreTenses ? 'Show Core Tenses Only' : `Show Imperfect & Conditional (+${extraTenses.length})`}
+                        {showMoreTenses ? t.showCoreTensesOnly : t.showExtraTenses(extraTenses.length)}
                       </button>
                     )}
 
@@ -452,10 +452,10 @@ export const VerbModal: React.FC<VerbModalProps> = ({
                       onClick={handleFetchAiFullConjugations}
                       disabled={isLoadingAi}
                       className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 hover:text-emerald-950 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-300 transition cursor-pointer shadow-2xs disabled:opacity-50"
-                      title="Request complete linguistic paradigm expansion from AI"
+                      title={t.fullAiParadigm}
                     >
                       <RefreshCw className={`w-3 h-3 ${isLoadingAi ? 'animate-spin' : ''}`} />
-                      <span>{isLoadingAi ? 'Expanding...' : 'Full AI Paradigm'}</span>
+                      <span>{isLoadingAi ? t.expandingBtn : t.fullAiParadigm}</span>
                     </button>
                   </div>
                 </div>
@@ -484,9 +484,9 @@ export const VerbModal: React.FC<VerbModalProps> = ({
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-50 text-slate-600 font-bold text-[11px] border-b border-slate-200">
                       <tr>
-                        <th className="py-2 px-3 w-1/3">Subject / Pronoun</th>
-                        <th className="py-2 px-3">Conjugated Form</th>
-                        <th className="py-2 px-3 text-center w-12">Listen</th>
+                        <th className="py-2 px-3 w-1/3">{t.subjectPronoun}</th>
+                        <th className="py-2 px-3">{t.conjugatedForm}</th>
+                        <th className="py-2 px-3 text-center w-12">{t.listenVerb}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -511,7 +511,7 @@ export const VerbModal: React.FC<VerbModalProps> = ({
                               </span>
                               {isContextMatch && (
                                 <span className="ml-1.5 text-[9px] text-emerald-800 bg-emerald-100 px-1.5 py-0.2 rounded font-extrabold">
-                                  in story
+                                  {t.inStoryBadge}
                                 </span>
                               )}
                             </td>
@@ -520,7 +520,7 @@ export const VerbModal: React.FC<VerbModalProps> = ({
                                 type="button"
                                 onClick={() => onSpeak(item.form)}
                                 className="p-1 text-slate-400 hover:text-[#008450] hover:bg-emerald-50 rounded-lg transition cursor-pointer"
-                                title={`Listen to ${item.form}`}
+                                title={t.listenVerb}
                               >
                                 <Volume2 className="w-3.5 h-3.5" />
                               </button>

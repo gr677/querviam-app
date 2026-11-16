@@ -350,9 +350,9 @@ export const HighlightPopover: React.FC<HighlightPopoverProps> = ({
                     ? 'bg-emerald-700 text-white border-emerald-800 shadow-sm'
                     : 'bg-white hover:bg-emerald-50 text-emerald-800 border-emerald-300'
                 }`}
-                title="Pronunciation & articulatory mouth guide"
+                title={t.pronunciationGuideTitle}
               >
-                <span>Pronunciation</span>
+                <span>{t.pronunciation}</span>
               </button>
 
               <button
@@ -372,12 +372,12 @@ export const HighlightPopover: React.FC<HighlightPopoverProps> = ({
               <div className="flex items-center justify-between border-b border-emerald-200/70 pb-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-950">
                   <span className="text-base">👄</span>
-                  <span>Pronunciation & Mouth Placement Guide</span>
+                  <span>{t.pronunciationGuideTitle}</span>
                 </div>
 
                 {/* Multi-Speed Audio Controls */}
                 <div className="flex items-center gap-1 bg-white/80 p-0.5 rounded-lg border border-emerald-200">
-                  <span className="text-[10px] font-bold text-emerald-800 px-1">Speed:</span>
+                  <span className="text-[10px] font-bold text-emerald-800 px-1">{t.speedLabel}</span>
                   {[
                     { label: '1.0x', speed: 1.0 },
                     { label: '0.75x', speed: 0.75 },
@@ -411,7 +411,7 @@ export const HighlightPopover: React.FC<HighlightPopoverProps> = ({
                       </span>
                       <div className="flex items-center gap-1.5 text-xs font-black text-amber-950 bg-white px-2.5 py-1 rounded-full border border-amber-300 shadow-2xs">
                         <Clock className="w-3.5 h-3.5 text-amber-700 animate-spin" />
-                        <span>Opening in {adCountdown ?? 3}s...</span>
+                        <span>{t.openingInSec(adCountdown ?? 3)}</span>
                       </div>
                     </div>
 
@@ -466,7 +466,7 @@ export const HighlightPopover: React.FC<HighlightPopoverProps> = ({
                   <div className="bg-white/90 p-3 rounded-xl border border-emerald-200/80 flex items-center justify-between flex-wrap gap-2">
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block">
-                        Syllables & Stress
+                        {t.syllablesStressLabel}
                       </span>
                       <div className="text-sm font-black text-slate-800 tracking-wide mt-0.5 font-mono">
                         {pronunciationInfo.syllables || cleanWord}
@@ -487,7 +487,7 @@ export const HighlightPopover: React.FC<HighlightPopoverProps> = ({
                       {pronunciationInfo.stressedSyllable && (
                         <div className="text-right">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block">
-                            Primary Stress
+                            {t.primaryStressLabel}
                           </span>
                           <span className="inline-block text-xs font-black text-white bg-emerald-700 px-2 py-0.5 rounded-md shadow-2xs">
                             [{pronunciationInfo.stressedSyllable}]
@@ -503,7 +503,7 @@ export const HighlightPopover: React.FC<HighlightPopoverProps> = ({
                     <div className="p-3 bg-white/90 rounded-xl border border-emerald-200/70 shadow-2xs space-y-1">
                       <div className="flex items-center gap-1.5 font-bold text-emerald-950">
                         <span className="text-base leading-none">👅</span>
-                        <span>Tongue Placement</span>
+                        <span>{t.tonguePlacementLabel}</span>
                       </div>
                       <p className="text-[11px] text-slate-700 leading-relaxed">
                         {pronunciationInfo.tonguePlacement}
@@ -514,7 +514,7 @@ export const HighlightPopover: React.FC<HighlightPopoverProps> = ({
                     <div className="p-3 bg-white/90 rounded-xl border border-emerald-200/70 shadow-2xs space-y-1">
                       <div className="flex items-center gap-1.5 font-bold text-emerald-950">
                         <Smile className="w-3.5 h-3.5 text-emerald-700" />
-                        <span>Lips & Jaw Opening</span>
+                        <span>{t.lipsJawLabel}</span>
                       </div>
                       <p className="text-[11px] text-slate-700 leading-relaxed">
                         {pronunciationInfo.lipAndMouthPosition}
@@ -525,7 +525,7 @@ export const HighlightPopover: React.FC<HighlightPopoverProps> = ({
                     <div className="p-3 bg-white/90 rounded-xl border border-emerald-200/70 shadow-2xs space-y-1">
                       <div className="flex items-center gap-1.5 font-bold text-emerald-950">
                         <Wind className="w-3.5 h-3.5 text-emerald-700" />
-                        <span>Airflow & Vocal Cords</span>
+                        <span>{t.airflowVocalLabel}</span>
                       </div>
                       <p className="text-[11px] text-slate-700 leading-relaxed">
                         {pronunciationInfo.airflowAndVoicing}
@@ -536,7 +536,7 @@ export const HighlightPopover: React.FC<HighlightPopoverProps> = ({
                     <div className="p-3 bg-amber-50/90 rounded-xl border border-amber-200/90 shadow-2xs space-y-1">
                       <div className="flex items-center gap-1.5 font-bold text-amber-950">
                         <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                        <span>Common Accent Trap</span>
+                        <span>{t.commonAccentTrapLabel}</span>
                       </div>
                       <p className="text-[11px] text-amber-950 leading-relaxed">
                         {pronunciationInfo.learnerPitfalls}
@@ -549,7 +549,7 @@ export const HighlightPopover: React.FC<HighlightPopoverProps> = ({
                     <div className="p-2.5 bg-white/80 rounded-xl border border-emerald-200/60 text-[11px] text-slate-700 flex items-start gap-2">
                       <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
                       <div>
-                        <strong className="font-bold text-emerald-950">Rhythm & Pitch Contour: </strong>
+                        <strong className="font-bold text-emerald-950">{t.rhythmPitchLabel} </strong>
                         <span>{pronunciationInfo.toneOrPitchGuide}</span>
                       </div>
                     </div>
@@ -560,13 +560,13 @@ export const HighlightPopover: React.FC<HighlightPopoverProps> = ({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                       {pronunciationInfo.soundAlike && (
                         <div className="p-2.5 bg-white/80 rounded-xl border border-emerald-200/60 text-[11px] text-slate-700">
-                          <span className="font-bold text-emerald-950 block text-[10px] uppercase tracking-wider">Sounds like ({baseLang}):</span>
+                          <span className="font-bold text-emerald-950 block text-[10px] uppercase tracking-wider">{t.soundsLikeLabel(baseLang)}</span>
                           <span className="font-semibold text-emerald-900 mt-0.5 block">{pronunciationInfo.soundAlike}</span>
                         </div>
                       )}
                       {pronunciationInfo.memoryHook && (
                         <div className="p-2.5 bg-amber-50/80 rounded-xl border border-amber-200/60 text-[11px] text-slate-700">
-                          <span className="font-bold text-amber-950 block text-[10px] uppercase tracking-wider">Physical Memory Hook:</span>
+                          <span className="font-bold text-amber-950 block text-[10px] uppercase tracking-wider">{t.memoryHookLabel}</span>
                           <span className="text-amber-900 mt-0.5 block">{pronunciationInfo.memoryHook}</span>
                         </div>
                       )}
@@ -602,7 +602,7 @@ export const HighlightPopover: React.FC<HighlightPopoverProps> = ({
               {/* Deep Phonetician Action Button (AI removed as requested) */}
               <div className="flex items-center justify-between pt-0.5">
                 <span className="text-[10px] text-emerald-800 font-medium">
-                  {hasLoadedSpecificPronunciation ? 'Word-specific articulatory analysis active' : 'Word-specific phonetic guidance'}
+                  {hasLoadedSpecificPronunciation ? t.wordSpecificActive : t.wordSpecificIdle}
                 </span>
                 <button
                   type="button"
@@ -611,7 +611,7 @@ export const HighlightPopover: React.FC<HighlightPopoverProps> = ({
                   className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-800 hover:text-emerald-950 bg-white/90 hover:bg-white px-3 py-1.5 rounded-xl border border-emerald-300 transition cursor-pointer shadow-2xs disabled:opacity-50 active:scale-95"
                 >
                   <RefreshCw className={`w-3 h-3 ${isLoadingPronunciation ? 'animate-spin' : ''}`} />
-                  <span>{isLoadingPronunciation ? 'Analyzing phonetics...' : 'Deepen with Phonetician'}</span>
+                  <span>{isLoadingPronunciation ? t.analyzingPhonetics : t.deepenPhonetician}</span>
                 </button>
               </div>
             </div>
@@ -648,12 +648,12 @@ export const HighlightPopover: React.FC<HighlightPopoverProps> = ({
               <div className="flex items-center gap-1.5">
                 {isDoubleChecked && (
                   <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-100/90 px-1.5 py-0.2 rounded border border-emerald-300">
-                    ✓ Double-checked
+                    {t.doubleCheckedBadge}
                   </span>
                 )}
                 {isTranslating && (
                   <span className="text-[10px] text-slate-400 font-medium animate-pulse">
-                    Verifying...
+                    {t.verifyingBadge}
                   </span>
                 )}
               </div>
@@ -662,7 +662,7 @@ export const HighlightPopover: React.FC<HighlightPopoverProps> = ({
               type="text"
               value={customTranslation}
               onChange={(e) => setCustomTranslation(e.target.value)}
-              placeholder={isTranslating ? 'Verifying translation...' : t.wordTranslationPlaceholder}
+              placeholder={isTranslating ? t.verifyingTranslationPlaceholder : t.wordTranslationPlaceholder}
               className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#008450] text-slate-900 transition font-medium"
             />
           </div>
@@ -702,7 +702,7 @@ export const HighlightPopover: React.FC<HighlightPopoverProps> = ({
                     <Compass className="w-4 h-4 text-amber-700" />
                     <span>{t.etymologyTitle}</span>
                     <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-100/90 px-1.5 py-0.5 rounded border border-emerald-300">
-                      ✓ Double-checked
+                      {t.doubleCheckedBadge}
                     </span>
                   </div>
 

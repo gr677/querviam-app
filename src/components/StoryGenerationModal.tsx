@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, CheckCircle2, BookOpen, ArrowRight } from 'lucide-react';
+import { Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
+import { getT } from '../utils/translations';
 
 interface StoryGenerationModalProps {
   isOpen: boolean;
@@ -14,107 +15,17 @@ interface StoryGenerationModalProps {
 
 // Localized boilerplate text for "Creating you a story for " in the learner's "I SPEAK" language
 export function getCreatingStoryPrefix(baseLang: string): string {
-  const map: Record<string, string> = {
-    English: 'Creating you a story for ',
-    Italian: 'Creazione di una storia per ',
-    Spanish: 'Creando una historia sobre ',
-    French: 'Création d’une histoire sur ',
-    German: 'Erstelle eine Geschichte über ',
-    Portuguese: 'Criando uma história sobre ',
-    Japanese: '次のテーマで物語を作成中: ',
-    Korean: '다음 주제로 이야기를 만드는 중입니다: ',
-    Chinese: '正在为您创作故事：',
-    Russian: 'Создание истории на тему: ',
-    Arabic: 'جارٍ إنشاء قصة حول: ',
-    Dutch: 'Een verhaal maken over ',
-    Polish: 'Tworzenie opowiadania na temat: ',
-    Greek: 'Δημιουργία ιστορίας για ',
-    Hebrew: 'יוצר עבורך סיפור על ',
-    Hindi: 'के लिए आपकी कहानी बनाई जा रही है: ',
-    Indonesian: 'Membuat cerita untuk ',
-    Norwegian: 'Lager en historie om ',
-    Romanian: 'Se creează o poveste despre ',
-    Swedish: 'Skapar en berättelse om ',
-    Turkish: 'Şunun için bir hikaye oluşturuluyor: ',
-    Vietnamese: 'Đang tạo câu chuyện cho ',
-    Danish: 'Opretter en historie om ',
-    Finnish: 'Luodaan tarina aiheesta ',
-    Czech: 'Vytváření příběhu na téma ',
-    Hungarian: 'Történet készítése erről: ',
-    Marathi: 'या विषयावर कथा तयार करत आहे: ',
-  };
-
-  return map[baseLang] || 'Creating you a story for ';
+  return getT(baseLang).creatingStoryPrefix;
 }
 
 // Localized "Your story is ready!" heading
 export function getStoryReadyTitle(baseLang: string): string {
-  const map: Record<string, string> = {
-    English: 'Your story is ready!',
-    Italian: 'La tua storia è pronta!',
-    Spanish: '¡Tu historia está lista!',
-    French: 'Votre histoire est prête !',
-    German: 'Deine Geschichte ist fertig!',
-    Portuguese: 'Sua história está pronta!',
-    Japanese: '物語が完成しました！',
-    Korean: '이야기가 완성되었습니다!',
-    Chinese: '您的故事已准备就绪！',
-    Russian: 'Ваша история готова!',
-    Arabic: 'قصتك جاهزة!',
-    Dutch: 'Je verhaal is klaar!',
-    Polish: 'Twoje opowiadanie jest gotowe!',
-    Greek: 'Η ιστορία σας είναι έτοιμη!',
-    Hebrew: 'הסיפור שלך מוכן!',
-    Hindi: 'आपकी कहानी तैयार है!',
-    Indonesian: 'Cerita Anda sudah siap!',
-    Norwegian: 'Historien din er klar!',
-    Romanian: 'Povestea ta este gata!',
-    Swedish: 'Din berättelse är klar!',
-    Turkish: 'Hikayeniz hazır!',
-    Vietnamese: 'Câu chuyện của bạn đã sẵn sàng!',
-    Danish: 'Din historie er klar!',
-    Finnish: 'Tarinasi on valmis!',
-    Czech: 'Váš příběh je připraven!',
-    Hungarian: 'A történeted elkészült!',
-    Marathi: 'तुमची कथा तयार आहे!',
-  };
-
-  return map[baseLang] || 'Your story is ready!';
+  return getT(baseLang).storyReadyTitle;
 }
 
 // Localized "Done" button text in the learner's "I SPEAK" language
 export function getDoneButtonText(baseLang: string): string {
-  const map: Record<string, string> = {
-    English: 'Done • Read Story',
-    Italian: 'Fatto • Leggi la storia',
-    Spanish: 'Listo • Leer historia',
-    French: 'Terminé • Lire l’histoire',
-    German: 'Fertig • Geschichte lesen',
-    Portuguese: 'Pronto • Ler história',
-    Japanese: '完了 • 物語を読む',
-    Korean: '완료 • 이야기 읽기',
-    Chinese: '完成 • 阅读故事',
-    Russian: 'Готово • Читать историю',
-    Arabic: 'تم • قراءة القصة',
-    Dutch: 'Klaar • Lees verhaal',
-    Polish: 'Gotowe • Czytaj opowiadanie',
-    Greek: 'Έτοιμο • Διαβάστε την ιστορία',
-    Hebrew: 'סיום • קרא סיפור',
-    Hindi: 'हो गया • कहानी पढ़ें',
-    Indonesian: 'Selesai • Baca Cerita',
-    Norwegian: 'Ferdig • Les historien',
-    Romanian: 'Gata • Citește povestea',
-    Swedish: 'Klar • Läs berättelsen',
-    Turkish: 'Bitti • Hikayeyi Oku',
-    Vietnamese: 'Xong • Đọc câu chuyện',
-    Danish: 'Færdig • Læs historien',
-    Finnish: 'Valmis • Lue tarina',
-    Czech: 'Hotovo • Číst příběh',
-    Hungarian: 'Kész • Történet olvasása',
-    Marathi: 'पूर्ण झाले • कथा वाचा',
-  };
-
-  return map[baseLang] || 'Done • Read Story';
+  return getT(baseLang).storyDoneBtn;
 }
 
 export const StoryGenerationModal: React.FC<StoryGenerationModalProps> = ({
@@ -125,36 +36,38 @@ export const StoryGenerationModal: React.FC<StoryGenerationModalProps> = ({
   targetLang,
   targetLangFlag = '📖',
   onDone,
-  onSpeakText,
 }) => {
+  const t = getT(baseLang);
   const [progress, setProgress] = useState(15);
-  const [stepText, setStepText] = useState('Weaving sentences & vocabulary...');
+  const [stepIndex, setStepIndex] = useState<0 | 1 | 2 | 3>(0);
 
   useEffect(() => {
     if (!isOpen) {
       setProgress(15);
+      setStepIndex(0);
       return;
     }
 
     if (isReady) {
       setProgress(100);
-      setStepText('Complete! Tap Done to start reading.');
       return;
     }
 
+    setStepIndex(0);
+
     const t1 = setTimeout(() => {
       setProgress(40);
-      setStepText(`Drafting in ${targetLang}...`);
+      setStepIndex(1);
     }, 1000);
 
     const t2 = setTimeout(() => {
       setProgress(75);
-      setStepText('Adding verb notes & bilingual translations...');
+      setStepIndex(2);
     }, 2200);
 
     const t3 = setTimeout(() => {
       setProgress(95);
-      setStepText('Polishing audio phonetics & exercises...');
+      setStepIndex(3);
     }, 3400);
 
     return () => {
@@ -166,9 +79,19 @@ export const StoryGenerationModal: React.FC<StoryGenerationModalProps> = ({
 
   if (!isOpen) return null;
 
-  const prefix = getCreatingStoryPrefix(baseLang);
-  const readyTitle = getStoryReadyTitle(baseLang);
-  const doneBtnText = getDoneButtonText(baseLang);
+  const stepText = isReady
+    ? t.genStepComplete
+    : stepIndex === 0
+    ? t.genStepWeaving
+    : stepIndex === 1
+    ? t.genStepDrafting(targetLang)
+    : stepIndex === 2
+    ? t.genStepAdding
+    : t.genStepPolishing;
+
+  const prefix = t.creatingStoryPrefix;
+  const readyTitle = t.storyReadyTitle;
+  const doneBtnText = t.storyDoneBtn;
   const cleanTopic = topic.trim() || 'A day of new discoveries';
 
   return (
@@ -262,14 +185,14 @@ export const StoryGenerationModal: React.FC<StoryGenerationModalProps> = ({
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest flex items-center gap-1">
               <Sparkles className="w-3 h-3 text-[#008450]" />
-              <span>Language Learning Tip</span>
+              <span>{t.langTipTitle}</span>
             </span>
             <span className="text-[10px] text-slate-400 font-medium">
-              Immersion Technique
+              {t.immersionTechnique}
             </span>
           </div>
           <p className="text-[11px] leading-relaxed text-slate-600">
-            Reading graded sentences with audio phonetics builds natural comprehension 3x faster than isolated vocabulary memorization. Click any word in your story for roots and etymology.
+            {t.langTipDesc}
           </p>
         </div>
       </div>

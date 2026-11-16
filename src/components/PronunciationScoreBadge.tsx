@@ -52,7 +52,7 @@ export const PronunciationScoreBadge: React.FC<PronunciationScoreBadgeProps> = (
           <span>{t.pronunciation}: {score}%</span>
           {result.attempt && result.attempt > 1 && (
             <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-black/10 font-bold">
-              Take #{result.attempt}
+              #{result.attempt}
             </span>
           )}
         </span>
@@ -82,7 +82,7 @@ export const PronunciationScoreBadge: React.FC<PronunciationScoreBadgeProps> = (
                     ? 'bg-emerald-50 text-emerald-900 border-emerald-300 hover:bg-emerald-100'
                     : 'bg-rose-50 text-rose-900 border-rose-300 hover:bg-rose-100'
                 }`}
-                title={`Spoken: ${item.isMatch ? 'Accurate ✓' : 'Needs work ✕'} — Tap to hear pronunciation`}
+                title={`${item.word} (${item.isMatch ? '✓' : '✕'}) — ${t.tapWordToListen}`}
               >
                 <span>{item.word}</span>
                 <Volume2 className="w-3 h-3 opacity-60" />
