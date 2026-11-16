@@ -113,6 +113,7 @@ export interface LanguageOption {
 }
 
 const LANGUAGES: LanguageOption[] = [
+  { name: 'Afrikaans', nativeName: 'Afrikaans', code: 'af-ZA', flag: '🇿🇦' },
   { name: 'Arabic', nativeName: 'العربية', code: 'ar-SA', flag: '🇸🇦' },
   { name: 'Chinese (Mandarin)', nativeName: '简体中文', code: 'zh-CN', flag: '🇨🇳' },
   { name: 'Czech', nativeName: 'Čeština', code: 'cs-CZ', flag: '🇨🇿' },
@@ -135,9 +136,11 @@ const LANGUAGES: LanguageOption[] = [
   { name: 'Swedish', nativeName: 'Svenska', code: 'sv-SE', flag: '🇸🇪' },
   { name: 'Turkish', nativeName: 'Türkçe', code: 'tr-TR', flag: '🇹🇷' },
   { name: 'Vietnamese', nativeName: 'Tiếng Việt', code: 'vi-VN', flag: '🇻🇳' },
+  { name: 'Welsh', nativeName: 'Cymraeg', code: 'cy-GB', flag: '🏴󠁧󠁢󠁷󠁬󠁳󠁿' },
 ];
 
 const BASE_LANGUAGES: LanguageOption[] = [
+  { name: 'Afrikaans', nativeName: 'Afrikaans', nativeCountry: 'Suid-Afrika / Namibië', flag: '🇿🇦', code: 'af-ZA', greeting: 'Hallo!' },
   { name: 'Arabic', nativeName: 'العربية', nativeCountry: 'العالم العربي', flag: '🇸🇦', code: 'ar-SA', greeting: 'مرحباً!' },
   { name: 'Bengali', nativeName: 'বাংলা', nativeCountry: 'বাংলাদেশ / भारत', flag: '🇧🇩', code: 'bn-IN', greeting: 'নমস্কার!' },
   { name: 'Chinese (Mandarin)', nativeName: '简体中文', nativeCountry: '中国 (China)', flag: '🇨🇳', code: 'zh-CN', greeting: '你好!' },
@@ -172,6 +175,7 @@ const BASE_LANGUAGES: LanguageOption[] = [
   { name: 'Ukrainian', nativeName: 'Українська', nativeCountry: 'Україна', flag: '🇺🇦', code: 'uk-UA', greeting: 'Привіт!' },
   { name: 'Urdu', nativeName: 'اردو', nativeCountry: 'پاکستان / بھارت', flag: '🇵🇰', code: 'ur-PK', greeting: 'سلام!' },
   { name: 'Vietnamese', nativeName: 'Tiếng Việt', nativeCountry: 'Việt Nam', flag: '🇻🇳', code: 'vi-VN', greeting: 'Xin chào!' },
+  { name: 'Welsh', nativeName: 'Cymraeg', nativeCountry: 'Cymru (Wales)', flag: '🏴󠁧󠁢󠁷󠁬󠁳󠁿', code: 'cy-GB', greeting: 'Helo!' },
 ];
 
 const BUILTIN_STORY_FILENAME = 'builtin_lago_sirio.json';

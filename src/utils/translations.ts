@@ -11,12 +11,16 @@ import { EU_EAST_GREEK_LOCALES } from './locales/euEastGreek';
 import { EU_NORDIC_CENTRAL_LOCALES } from './locales/euNordicCentral';
 import { ASIAN_LOCALES } from './locales/asian';
 import { SOUTH_ASIA_MIDDLE_EAST_LOCALES } from './locales/southAsiaMiddleEast';
+import { AFRIKAANS_WELSH_LOCALES } from './locales/afrikaansWelsh';
 
 export type { TourStepText, TranslationDictionary };
 export { ENGLISH_TRANSLATIONS, RTL_LANGUAGES, isRtlLanguage, getHtmlLangCode };
 
 export const TRANSLATION_MAP: Record<string, Partial<TranslationDictionary>> = {
   english: ENGLISH_TRANSLATIONS,
+  afrikaans: AFRIKAANS_WELSH_LOCALES.Afrikaans,
+  welsh: AFRIKAANS_WELSH_LOCALES.Welsh,
+  cymraeg: AFRIKAANS_WELSH_LOCALES.Welsh,
   french: EU_WEST_LOCALES.French,
   spanish: EU_WEST_LOCALES.Spanish,
   portuguese: EU_WEST_LOCALES.Portuguese,

@@ -143,6 +143,8 @@ const KNOWN_VOCABULARY: Record<string, string> = {
 
 const BASE_LANGUAGES = [
   { name: 'English', flag: '🇬🇧' },
+  { name: 'Afrikaans', flag: '🇿🇦' },
+  { name: 'Welsh', flag: '🏴󠁧󠁢󠁷󠁬󠁳󠁿' },
   { name: 'Norwegian', flag: '🇳🇴' },
   { name: 'Spanish', flag: '🇪🇸' },
   { name: 'French', flag: '🇫🇷' },
@@ -155,7 +157,6 @@ const BASE_LANGUAGES = [
   { name: 'Russian', flag: '🇷🇺' },
   { name: 'Japanese', flag: '🇯🇵' },
   { name: 'Chinese (Mandarin)', flag: '🇨🇳' },
-  { name: 'Chinese (Simplified)', flag: '🇨🇳' },
   { name: 'Hungarian', flag: '🇭🇺' },
   { name: 'Arabic', flag: '🇸🇦' },
   { name: 'Hindi', flag: '🇮🇳' },
@@ -164,6 +165,19 @@ const BASE_LANGUAGES = [
   { name: 'Greek', flag: '🇬🇷' },
   { name: 'Hebrew', flag: '🇮🇱' },
   { name: 'Vietnamese', flag: '🇻🇳' },
+  { name: 'Ukrainian', flag: '🇺🇦' },
+  { name: 'Danish', flag: '🇩🇰' },
+  { name: 'Finnish', flag: '🇫🇮' },
+  { name: 'Czech', flag: '🇨🇿' },
+  { name: 'Romanian', flag: '🇷🇴' },
+  { name: 'Thai', flag: '🇹🇭' },
+  { name: 'Indonesian', flag: '🇮🇩' },
+  { name: 'Filipino', flag: '🇵🇭' },
+  { name: 'Bengali', flag: '🇧🇩' },
+  { name: 'Marathi', flag: '🇮🇳' },
+  { name: 'Tamil', flag: '🇮🇳' },
+  { name: 'Telugu', flag: '🇮🇳' },
+  { name: 'Urdu', flag: '🇵🇰' },
 ];
 
 export const FlashcardsModal: React.FC<FlashcardsModalProps> = ({

@@ -600,13 +600,43 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
               className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#008450]"
             >
               <option value="all">{t.allLanguages}</option>
-              <option value="Italian">Italian</option>
-              <option value="Spanish">Spanish</option>
-              <option value="French">French</option>
-              <option value="German">German</option>
-              <option value="Norwegian">Norwegian</option>
-              <option value="Hungarian">Hungarian</option>
-              <option value="Czech">Czech</option>
+              {Array.from(
+                new Set([
+                  'Afrikaans',
+                  'Arabic',
+                  'Chinese (Mandarin)',
+                  'Czech',
+                  'Dutch',
+                  'English',
+                  'French',
+                  'German',
+                  'Greek',
+                  'Hebrew',
+                  'Hindi',
+                  'Hungarian',
+                  'Italian',
+                  'Japanese',
+                  'Korean',
+                  'Norwegian',
+                  'Polish',
+                  'Portuguese',
+                  'Russian',
+                  'Spanish',
+                  'Swedish',
+                  'Turkish',
+                  'Vietnamese',
+                  'Welsh',
+                  ...activeItemsPool
+                    .map((item) => item._meta?.targetLang)
+                    .filter((l): l is string => Boolean(l && l.trim())),
+                ])
+              )
+                .sort((a, b) => a.localeCompare(b))
+                .map((langName) => (
+                  <option key={langName} value={langName}>
+                    {langName}
+                  </option>
+                ))}
             </select>
 
             <select
@@ -885,13 +915,43 @@ export const LibraryModal: React.FC<LibraryModalProps> = ({
                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#008450]"
                   >
                     <option value="all">{t.allLanguages}</option>
-                    <option value="Italian">Italian</option>
-                    <option value="Spanish">Spanish</option>
-                    <option value="French">French</option>
-                    <option value="German">German</option>
-                    <option value="Norwegian">Norwegian</option>
-                    <option value="Hungarian">Hungarian</option>
-                    <option value="Czech">Czech</option>
+                    {Array.from(
+                      new Set([
+                        'Afrikaans',
+                        'Arabic',
+                        'Chinese (Mandarin)',
+                        'Czech',
+                        'Dutch',
+                        'English',
+                        'French',
+                        'German',
+                        'Greek',
+                        'Hebrew',
+                        'Hindi',
+                        'Hungarian',
+                        'Italian',
+                        'Japanese',
+                        'Korean',
+                        'Norwegian',
+                        'Polish',
+                        'Portuguese',
+                        'Russian',
+                        'Spanish',
+                        'Swedish',
+                        'Turkish',
+                        'Vietnamese',
+                        'Welsh',
+                        ...activeItemsPool
+                          .map((item) => item._meta?.targetLang)
+                          .filter((l): l is string => Boolean(l && l.trim())),
+                      ])
+                    )
+                      .sort((a, b) => a.localeCompare(b))
+                      .map((langName) => (
+                        <option key={langName} value={langName}>
+                          {langName}
+                        </option>
+                      ))}
                   </select>
                 </div>
 

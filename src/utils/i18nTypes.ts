@@ -737,10 +737,12 @@ export function isRtlLanguage(lang?: string): boolean {
 }
 
 const HTML_LANG_MAP: Record<string, string> = {
+  afrikaans: 'af',
   arabic: 'ar',
   bengali: 'bn',
   'chinese (mandarin)': 'zh-CN',
   chinese: 'zh-CN',
+  cymraeg: 'cy',
   czech: 'cs',
   danish: 'da',
   dutch: 'nl',
@@ -772,6 +774,7 @@ const HTML_LANG_MAP: Record<string, string> = {
   ukrainian: 'uk',
   urdu: 'ur',
   vietnamese: 'vi',
+  welsh: 'cy',
 };
 
 export function getHtmlLangCode(lang?: string): string {
