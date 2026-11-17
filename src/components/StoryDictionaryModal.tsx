@@ -70,6 +70,18 @@ function extractUniqueStoryWords(story: StoryData, targetLang: string): Extracte
   return result;
 }
 
+function normalizeLookupKey(raw: string): string {
+  return String(raw || '')
+    .replace(/[’‘ʼ`]/g, "'")
+    .replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '')
+    .trim()
+    .toLowerCase();
+}
+
+function stripDiacritics(raw: string): string {
+  return raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 function normalizePosCategory(pos?: string): 'noun' | 'verb' | 'adj' | 'other' {
   const p = (pos || '').toLowerCase().trim();
   if (p.startsWith('noun') || p === 'n') return 'noun';
@@ -102,6 +114,16 @@ export const StoryDictionaryModal: React.FC<StoryDictionaryModalProps> = ({
   const [posFilter, setPosFilter] = useState<'all' | 'noun' | 'verb' | 'adj' | 'other'>('all');
   const [sortMode, setSortMode] = useState<'story' | 'az'>('story');
   const [expandedWordKey, setExpandedWordKey] = useState<string | null>(null);
+  const [retryNonce, setRetryNonce] = useState(0);
+
+  // Clear stale search/POS filters whenever switching stories or opening the modal
+  useEffect(() => {
+    if (isOpen) {
+      setSearchQuery('');
+      setPosFilter('all');
+      setExpandedWordKey(null);
+    }
+  }, [isOpen, storyKey]);
 
   const extractedWords = useMemo(() => {
     if (!story) return [];
@@ -136,6 +158,26 @@ export const StoryDictionaryModal: React.FC<StoryDictionaryModalProps> = ({
               meaning: v.translation,
               partOfSpeech: 'verb',
               sentenceIndex: sIdx,
+            });
+          }
+          // Also index conjugated forms provided on starter/generated stories
+          if (v.conjugations && typeof v.conjugations === 'object') {
+            Object.values(v.conjugations).forEach((forms) => {
+              if (!Array.isArray(forms)) return;
+              forms.forEach((f) => {
+                const rawForm = String(f?.form || '').trim();
+                const lastToken = rawForm.split(/\s+/).pop() || rawForm;
+                const cleanConj = lastToken.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '').toLowerCase();
+                if (cleanConj && !map.has(cleanConj)) {
+                  map.set(cleanConj, {
+                    word: cleanConj,
+                    baseForm: v.infinitive.toLowerCase() !== cleanConj ? v.infinitive : undefined,
+                    meaning: v.translation,
+                    partOfSpeech: 'verb',
+                    sentenceIndex: sIdx,
+                  });
+                }
+              });
             });
           }
         }
@@ -185,17 +227,44 @@ export const StoryDictionaryModal: React.FC<StoryDictionaryModalProps> = ({
     knownMap: Map<string, StoryDictionaryEntry>,
     extraList: StoryDictionaryEntry[]
   ): StoryDictionaryEntry[] => {
-    const combined = new Map<string, StoryDictionaryEntry>(knownMap);
+    const combined = new Map<string, StoryDictionaryEntry>();
+    const combinedNoDiacritics = new Map<string, StoryDictionaryEntry>();
+
+    const indexEntry = (rawKey: string, entry: StoryDictionaryEntry) => {
+      const k = normalizeLookupKey(rawKey);
+      if (!k || !entry.meaning) return;
+      combined.set(k, entry);
+      const plain = stripDiacritics(k);
+      if (plain && !combinedNoDiacritics.has(plain)) {
+        combinedNoDiacritics.set(plain, entry);
+      }
+    };
+
+    knownMap.forEach((entry, k) => indexEntry(k, entry));
     for (const item of extraList) {
-      const k = item.word.toLowerCase().trim();
-      if (k && item.meaning) {
-        combined.set(k, item);
+      if (item.word && item.meaning) {
+        indexEntry(item.word, item);
       }
     }
+
     const ordered: StoryDictionaryEntry[] = [];
+    const includedKeys = new Set<string>();
+
     for (const w of extractedWords) {
-      const hit = combined.get(w.lower);
+      const normKey = normalizeLookupKey(w.word);
+      let hit = combined.get(normKey);
+      if (!hit && normKey.includes("'")) {
+        const afterApostrophe = normKey.split("'").pop()?.trim();
+        if (afterApostrophe) {
+          hit = combined.get(afterApostrophe);
+        }
+      }
+      if (!hit) {
+        hit = combinedNoDiacritics.get(stripDiacritics(normKey));
+      }
       if (hit) {
+        includedKeys.add(normalizeLookupKey(hit.word));
+        includedKeys.add(normKey);
         ordered.push({
           ...hit,
           word: w.word, // keep exact story casing
@@ -203,6 +272,16 @@ export const StoryDictionaryModal: React.FC<StoryDictionaryModalProps> = ({
         });
       }
     }
+
+    // Never silently drop valid fetched entries if wording differed slightly from tokenization
+    for (const item of extraList) {
+      const k = normalizeLookupKey(item.word);
+      if (k && item.meaning && !includedKeys.has(k)) {
+        includedKeys.add(k);
+        ordered.push(item);
+      }
+    }
+
     return ordered;
   };
 
@@ -220,20 +299,31 @@ export const StoryDictionaryModal: React.FC<StoryDictionaryModalProps> = ({
       const merged = mergeInStoryOrder(zeroTokenMap, cached);
       setEntries(merged.length > 0 ? merged : cached);
       setIsFromCache(true);
+      setIsLoading(false);
       return;
     }
 
     setIsFromCache(false);
 
     // 2. Find which unique story words are still missing after 0-token pre-fill
-    const missing = extractedWords.filter((w) => !zeroTokenMap.has(w.lower));
+    const missing = extractedWords.filter((w) => {
+      const norm = normalizeLookupKey(w.word);
+      return !zeroTokenMap.has(w.lower) && !zeroTokenMap.has(norm);
+    });
 
     // Show whatever 0-token entries we already have immediately
-    if (missing.length === 0) {
-      const immediate = mergeInStoryOrder(zeroTokenMap, []);
+    const immediate = mergeInStoryOrder(zeroTokenMap, []);
+    if (immediate.length > 0) {
       setEntries(immediate);
-      saveCachedStoryDictionary(storyKey, baseLang, immediate);
+    }
+
+    if (missing.length === 0) {
+      setEntries(immediate);
+      if (immediate.length > 0) {
+        saveCachedStoryDictionary(storyKey, baseLang, immediate);
+      }
       setIsFromCache(true);
+      setIsLoading(false);
       return;
     }
 
@@ -267,6 +357,8 @@ export const StoryDictionaryModal: React.FC<StoryDictionaryModalProps> = ({
         setEntries(merged);
         if (merged.length > 0) {
           saveCachedStoryDictionary(storyKey, baseLang, merged);
+        } else if (firstBatch.length > 0) {
+          setErrorMsg('Could not load story dictionary.');
         }
       } catch (err: any) {
         if (!cancelled) {
@@ -284,11 +376,11 @@ export const StoryDictionaryModal: React.FC<StoryDictionaryModalProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, storyKey, baseLang]);
+  }, [isOpen, story, storyKey, baseLang, targetLang, extractedWords.length, retryNonce]);
 
   const remainingUntranslated = useMemo(() => {
-    const resolvedSet = new Set(entries.map((e) => e.word.toLowerCase().trim()));
-    return extractedWords.filter((w) => !resolvedSet.has(w.lower));
+    const resolvedSet = new Set(entries.map((e) => normalizeLookupKey(e.word)));
+    return extractedWords.filter((w) => !resolvedSet.has(normalizeLookupKey(w.word)));
   }, [extractedWords, entries]);
 
   const handleLoadRemaining = async () => {
@@ -312,10 +404,12 @@ export const StoryDictionaryModal: React.FC<StoryDictionaryModalProps> = ({
       const fetched: StoryDictionaryEntry[] = Array.isArray(data.entries) ? data.entries : [];
 
       const existingMap = new Map<string, StoryDictionaryEntry>(zeroTokenMap);
-      entries.forEach((e) => existingMap.set(e.word.toLowerCase().trim(), e));
+      entries.forEach((e) => existingMap.set(normalizeLookupKey(e.word), e));
       const merged = mergeInStoryOrder(existingMap, fetched);
       setEntries(merged);
-      saveCachedStoryDictionary(storyKey, baseLang, merged);
+      if (merged.length > 0) {
+        saveCachedStoryDictionary(storyKey, baseLang, merged);
+      }
     } catch (err: any) {
       setErrorMsg(err?.message || 'Failed to load remaining words.');
     } finally {
@@ -351,7 +445,7 @@ export const StoryDictionaryModal: React.FC<StoryDictionaryModalProps> = ({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[90dvh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl h-[85dvh] sm:h-auto sm:max-h-[90dvh] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-200 bg-linear-to-r from-emerald-50 to-teal-50 flex items-start justify-between gap-3 shrink-0">
           <div className="min-w-0">
@@ -391,14 +485,34 @@ export const StoryDictionaryModal: React.FC<StoryDictionaryModalProps> = ({
         <div className="px-4 py-2.5 sm:px-6 border-b border-slate-100 bg-slate-50/70 space-y-2 shrink-0">
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
-                type="text"
+                type="search"
+                id="story_dictionary_filter"
+                name="story_dictionary_filter"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t.searchDictionaryPlaceholder}
-                className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#008450]/30 focus:border-[#008450]"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                data-lpignore="true"
+                data-1p-ignore="true"
+                data-bwignore="true"
+                data-form-type="other"
+                className="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#008450]/30 focus:border-[#008450]"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+                  aria-label="Clear search"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
             </div>
             <button
               type="button"
@@ -437,8 +551,8 @@ export const StoryDictionaryModal: React.FC<StoryDictionaryModalProps> = ({
         </div>
 
         {/* Dictionary List Body */}
-        <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-2">
-          {isLoading ? (
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain touch-pan-y scroll-touch p-3 sm:p-5 space-y-2">
+          {isLoading && entries.length === 0 ? (
             <div className="py-12 flex flex-col items-center justify-center gap-3 text-center">
               <Loader2 className="w-7 h-7 text-[#008450] animate-spin" />
               <div className="text-sm font-bold text-slate-700">{t.loadingDictionary}</div>
@@ -447,15 +561,61 @@ export const StoryDictionaryModal: React.FC<StoryDictionaryModalProps> = ({
               </div>
             </div>
           ) : errorMsg && entries.length === 0 ? (
-            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 text-center">
-              {errorMsg}
+            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 text-center space-y-2">
+              <p>{errorMsg}</p>
+              <button
+                type="button"
+                onClick={() => setRetryNonce((n) => n + 1)}
+                className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition cursor-pointer"
+              >
+                {t.tryAgain}
+              </button>
+            </div>
+          ) : entries.length === 0 ? (
+            <div className="py-10 text-center space-y-3">
+              <p className="text-xs text-slate-600">{t.loadingDictionary}</p>
+              <button
+                type="button"
+                onClick={() => setRetryNonce((n) => n + 1)}
+                className="px-3.5 py-1.5 rounded-xl bg-[#008450] hover:bg-[#006b40] text-white font-bold text-xs transition cursor-pointer"
+              >
+                {t.tryAgain}
+              </button>
             </div>
           ) : filteredEntries.length === 0 ? (
-            <div className="py-10 text-center text-xs text-slate-500">
-              {t.noDictionaryMatches}
+            <div className="py-10 text-center space-y-3">
+              <p className="text-xs text-slate-500">{t.noDictionaryMatches}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setPosFilter('all');
+                }}
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#008450] border border-emerald-200 font-bold text-xs transition cursor-pointer"
+              >
+                {t.allPartsOfSpeech} ({entries.length})
+              </button>
             </div>
           ) : (
             <>
+              {isLoading && (
+                <div className="flex items-center justify-center gap-2 py-1.5 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] font-semibold text-emerald-800">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#008450]" />
+                  <span>{t.loadingDictionary}</span>
+                </div>
+              )}
+              {!isLoading && errorMsg && (
+                <div className="flex items-center justify-between gap-2 py-1.5 px-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900">
+                  <span>{errorMsg}</span>
+                  <button
+                    type="button"
+                    onClick={() => setRetryNonce((n) => n + 1)}
+                    className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] transition cursor-pointer shrink-0"
+                  >
+                    {t.tryAgain}
+                  </button>
+                </div>
+              )}
               {filteredEntries.map((entry) => {
                 const rowKey = `${entry.word.toLowerCase()}_${entry.sentenceIndex}`;
                 const isExpanded = expandedWordKey === rowKey;

@@ -3146,10 +3146,17 @@ Rules:
       };
 
       const candidateModels = ['gemini-3.1-flash-lite', 'gemini-flash-latest', 'gemini-2.5-flash'];
-      let result: any = null;
+      let normalized: Array<{
+        word: string;
+        baseForm?: string;
+        meaning: string;
+        partOfSpeech: string;
+        sentenceIndex: number;
+      }> = [];
+
       for (const modelName of candidateModels) {
         try {
-          result = await ai.models.generateContent({
+          const result = await ai.models.generateContent({
             model: modelName,
             contents: prompt,
             config: {
@@ -3159,29 +3166,35 @@ Rules:
               maxOutputTokens: 4096,
             },
           });
-          if (result?.text) break;
+          if (!result?.text) continue;
+
+          let clean = result.text.trim();
+          if (clean.startsWith('```json')) clean = clean.replace(/^```json\s*/, '').replace(/```\s*$/, '').trim();
+          if (clean.startsWith('```')) clean = clean.replace(/^```\s*/, '').replace(/```\s*$/, '').trim();
+          const parsed = JSON.parse(clean);
+          const candidateEntries = Array.isArray(parsed?.entries)
+            ? parsed.entries.map((e: any) => ({
+                word: String(e?.w || '').trim(),
+                baseForm: e?.b && String(e.b).trim().toLowerCase() !== String(e?.w || '').trim().toLowerCase()
+                  ? String(e.b).trim()
+                  : undefined,
+                meaning: String(e?.m || '').trim(),
+                partOfSpeech: String(e?.p || 'other').toLowerCase().trim(),
+                sentenceIndex: Number.isFinite(Number(e?.s)) ? Number(e.s) : 0,
+              })).filter((e: any) => e.word && e.meaning)
+            : [];
+
+          if (candidateEntries.length > 0) {
+            normalized = candidateEntries;
+            break;
+          }
+          console.warn(`[story-dictionary] Model ${modelName} returned 0 usable entries for ${batchWords.length} words.`);
         } catch (err) {
           console.warn(`[story-dictionary] Model ${modelName} failed:`, (err as any)?.message || err);
         }
       }
 
-      if (result?.text) {
-        let clean = result.text.trim();
-        if (clean.startsWith('```json')) clean = clean.replace(/^```json\s*/, '').replace(/```\s*$/, '').trim();
-        if (clean.startsWith('```')) clean = clean.replace(/^```\s*/, '').replace(/```\s*$/, '').trim();
-        const parsed = JSON.parse(clean);
-        const normalized = Array.isArray(parsed?.entries)
-          ? parsed.entries.map((e: any) => ({
-              word: String(e?.w || '').trim(),
-              baseForm: e?.b && String(e.b).trim().toLowerCase() !== String(e?.w || '').trim().toLowerCase()
-                ? String(e.b).trim()
-                : undefined,
-              meaning: String(e?.m || '').trim(),
-              partOfSpeech: String(e?.p || 'other').toLowerCase().trim(),
-              sentenceIndex: Number.isFinite(Number(e?.s)) ? Number(e.s) : 0,
-            })).filter((e: any) => e.word && e.meaning)
-          : [];
-
+      if (normalized.length > 0) {
         if (storyDictionaryCache.size >= MAX_CACHE_ENTRIES) {
           const oldest = storyDictionaryCache.keys().next().value;
           if (oldest) storyDictionaryCache.delete(oldest);
