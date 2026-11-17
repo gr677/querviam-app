@@ -115,7 +115,10 @@ export const ComprehensionQuizView: React.FC<ComprehensionQuizViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Quiz Progress & Control Header */}
-      <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-indigo-50 border-2 border-emerald-300 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">
+      <div
+        data-no-swipe="true"
+        className="bg-gradient-to-r from-emerald-50 via-teal-50 to-indigo-50 border-2 border-emerald-300 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4"
+      >
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-[#008450] text-white flex items-center justify-center shadow-md shrink-0">

@@ -896,7 +896,10 @@ export default function App() {
     if (window.innerWidth >= 1024) return;
     ensureMobileOverlayHistory();
     const target = e.target as HTMLElement | null;
-    if (target && target.closest('input, textarea, select, [draggable="true"], .scramble-word, .quiz-btn')) {
+    if (
+      target &&
+      target.closest('input, textarea, select, [draggable="true"], .scramble-word, .quiz-btn, header, [data-no-swipe="true"]')
+    ) {
       return;
     }
     const touch = e.touches[0];
@@ -3701,7 +3704,7 @@ export default function App() {
         </header>
 
         {/* Story Sentences Area */}
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-8 py-6 max-w-4xl mx-auto w-full">
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-3 sm:px-8 py-3 sm:py-6 max-w-4xl mx-auto w-full">
           {!currentStory ? (
             <div className="text-center py-20 text-slate-400 space-y-3">
               <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-50 text-[#008450] flex items-center justify-center">
@@ -3722,7 +3725,10 @@ export default function App() {
               />
 
               {/* Story Overview & Metadata Card */}
-              <div className="p-2.5 sm:p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+              <div
+                data-no-swipe="true"
+                className="p-2 sm:p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-wrap items-center justify-between gap-2 sm:gap-3"
+              >
                 {/* Desktop/Tablet Story Metadata (Hidden on Phone) */}
                 <div className="hidden lg:block min-w-0">
                   <div className="flex items-center gap-2">
@@ -3821,19 +3827,22 @@ export default function App() {
                 </div>
 
                 {/* Quick Actions Bar */}
-                <div className="flex flex-wrap items-center gap-1.5 ml-auto shrink-0">
+                <div
+                  data-no-swipe="true"
+                  className="flex flex-wrap items-center gap-1.5 w-full lg:w-auto lg:ml-auto"
+                >
                   {/* 1. Highlighter Toggle */}
                   <button
                     type="button"
                     onClick={() => setIsHighlighterMode((prev) => !prev)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer shadow-xs ${
+                    className={`flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold rounded-xl transition cursor-pointer shadow-xs ${
                       isHighlighterMode
                         ? 'bg-amber-400 text-amber-950 border-2 border-amber-600 shadow-md ring-2 ring-amber-300 font-black scale-105'
                         : 'text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300'
                     }`}
                     title={t.vocabHighlighter}
                   >
-                    <Highlighter className="w-4 h-4 stroke-[2.5]" />
+                    <Highlighter className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
                     <span>{t.highlighter}{customHighlights.length > 0 ? ` (${customHighlights.length})` : ''}</span>
                     {isHighlighterMode && (
                       <span className="w-2 h-2 rounded-full bg-amber-950 animate-pulse ml-0.5" />
@@ -3844,7 +3853,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setIsGrammarOpen(true)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition cursor-pointer shadow-2xs"
+                    className="flex items-center gap-1 px-2 sm:px-2.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition cursor-pointer shadow-2xs"
                     title={t.grammar}
                   >
                     <Lightbulb className="w-3.5 h-3.5" />
@@ -3855,7 +3864,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setIsFlashcardsOpen(true)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-[#008450] bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition cursor-pointer shadow-2xs"
+                    className="flex items-center gap-1 px-2 sm:px-2.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-[#008450] bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition cursor-pointer shadow-2xs"
                     title={t.cards}
                   >
                     <Layers className="w-3.5 h-3.5" />
@@ -3866,7 +3875,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setIsDictionaryOpen(true)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-xl transition cursor-pointer shadow-2xs"
+                    className="flex items-center gap-1 px-2 sm:px-2.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-xl transition cursor-pointer shadow-2xs"
                     title={t.storyDictionaryTitle}
                   >
                     <BookOpen className="w-3.5 h-3.5 text-teal-700" />
@@ -3877,7 +3886,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setIsStudySheetOpen(true)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl transition cursor-pointer shadow-2xs"
+                    className="flex items-center gap-1 px-2 sm:px-2.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl transition cursor-pointer shadow-2xs"
                     title={t.studySheet}
                   >
                     <Printer className="w-3.5 h-3.5" />
@@ -3888,7 +3897,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setIsConversationOpen(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-300 rounded-xl transition cursor-pointer shadow-2xs active:scale-95"
+                    className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-300 rounded-xl transition cursor-pointer shadow-2xs active:scale-95"
                     title={t.conversationPartnerTitle}
                   >
                     <MessageSquare className="w-3.5 h-3.5 text-teal-600" />
@@ -3899,7 +3908,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setShowMicroHintForce((prev) => !prev)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition cursor-pointer shadow-2xs"
+                    className="flex items-center gap-1 px-2 sm:px-2.5 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition cursor-pointer shadow-2xs"
                     title={t.tipsTitle}
                   >
                     <HelpCircle className="w-3.5 h-3.5 text-emerald-700" />

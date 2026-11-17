@@ -3701,12 +3701,28 @@ Rules:
       server: {
         middlewareMode: true,
         allowedHosts: true,
-        hmr: disableHmr ? false : { server: httpServer },
-        ws: disableHmr ? false : undefined,
+        hmr: disableHmr ? false : true,
+        ws: disableHmr ? false : { server: httpServer },
         watch: disableHmr ? null : {},
       },
       appType: 'spa',
     });
+
+    if (disableHmr) {
+      app.get('/@vite/client', async (_req, res, next) => {
+        try {
+          const result = await vite.transformRequest('/@vite/client');
+          if (!result) return next();
+          const patched = result.code.replace(
+            /transport\.connect\s*\(\s*createHMRHandler\s*\(\s*handleMessage\s*\)\s*\)\s*;?/,
+            '/* HMR WebSocket disabled */'
+          );
+          res.type('application/javascript').send(patched);
+        } catch (err) {
+          next(err);
+        }
+      });
+    }
 
     app.use(vite.middlewares);
   } else {
