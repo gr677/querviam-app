@@ -837,6 +837,8 @@ export default function App() {
   const ensureMobileOverlayHistory = () => {
     if (typeof window === 'undefined' || window.innerWidth >= 1024) return;
     if (!(isSidebarMobileOpenRef.current || isLibraryOpenRef.current)) return;
+    const userActivation = (navigator as Navigator & { userActivation?: { hasBeenActive?: boolean } }).userActivation;
+    if (userActivation && !userActivation.hasBeenActive) return;
     try {
       if (!window.history.state?.querviamMobileOverlay) {
         window.history.pushState(
@@ -848,7 +850,7 @@ export default function App() {
   };
 
   // On phones/tablets only (< 1024px): trap browser/Android edge-swipe Back while Options drawer or Library is open
-  // so swiping back from Google arrival dismisses the options/library overlay to the Read/Play view instead of exiting to Google.
+  // so swiping back from arrival dismisses the options/library overlay to the Read/Play view instead of exiting the app.
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -883,8 +885,12 @@ export default function App() {
     if (isSidebarMobileOpen || isLibraryOpen) {
       ensureMobileOverlayHistory();
     } else if (window.history.state?.querviamMobileOverlay) {
-      ignoreNextPopStateRef.current = true;
-      window.history.back();
+      try {
+        window.history.replaceState(
+          { ...(window.history.state || {}), querviamMobileOverlay: false },
+          ''
+        );
+      } catch {}
     }
   }, [isSidebarMobileOpen, isLibraryOpen]);
 
@@ -3828,7 +3834,7 @@ export default function App() {
         </header>
 
         {/* Pinned / Locked Speed Run Countdown Bar (remains visible when scrolling) */}
-        {currentStory && practiceMode !== 'off' && isSpeedRunActive && isTimerLocked && (
+        {currentStory && isSpeedRunActive && isTimerLocked && (
           <div className="shrink-0 z-20 bg-amber-50/95 backdrop-blur-sm border-b border-amber-300 shadow-xs">
             <SpeedRunTimer
               isActive={isSpeedRunActive}
@@ -4069,8 +4075,8 @@ export default function App() {
                     <span>{t.tips}</span>
                   </button>
 
-                  {/* Speed Run Timer Challenge (Trigger or Unlocked inline bar during practice modes) */}
-                  {practiceMode !== 'off' && (!isSpeedRunActive || !isTimerLocked) && (
+                  {/* Speed Run Timer Challenge (Trigger or Unlocked inline bar) */}
+                  {(!isSpeedRunActive || !isTimerLocked) && (
                     <SpeedRunTimer
                       isActive={isSpeedRunActive}
                       onToggleActive={handleToggleSpeedRun}
