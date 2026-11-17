@@ -573,8 +573,25 @@ export default function App() {
     }
   };
 
-  // Timed Speed Run Mode
+  // Timed Speed Run Mode (controlled state so locking/pinning preserves exact seconds)
   const [isSpeedRunActive, setIsSpeedRunActive] = useState(false);
+  const [isTimerLocked, setIsTimerLocked] = useState(true);
+  const [timerDuration, setTimerDuration] = useState(60); // 1m..30m stored in seconds
+  const [timerTimeLeft, setTimerTimeLeft] = useState(60);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [isTimerTimeUp, setIsTimerTimeUp] = useState(false);
+  const [isTimerCompleted, setIsTimerCompleted] = useState(false);
+  const [timerStreak, setTimerStreak] = useState(0);
+  const [timerPersonalBest, setTimerPersonalBest] = useState<number | null>(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem('impara_speedrun_pb') : null;
+      return saved ? parseInt(saved, 10) : null;
+    } catch {
+      return null;
+    }
+  });
+  const prevTimerSolvedRef = useRef<number>(0);
+  const timeUpSpokenRef = useRef<boolean>(false);
 
   // Private Server Analytics (Discreet Admin View) & Dismissible Contextual Micro-Hint
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
@@ -1444,6 +1461,110 @@ export default function App() {
     if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume();
     }
+  };
+
+  const timerTotalQuestions =
+    practiceMode === 'quiz' && currentStory?.quiz?.length
+      ? currentStory.quiz.length
+      : currentStory?.sentences.length || 0;
+
+  // Timer streak & completion check
+  useEffect(() => {
+    if (activeSolvedCount > prevTimerSolvedRef.current) {
+      setTimerStreak((s) => s + 1);
+    } else if (activeSolvedCount === 0) {
+      setTimerStreak(0);
+    }
+    prevTimerSolvedRef.current = activeSolvedCount;
+
+    if (timerTotalQuestions > 0 && activeSolvedCount === timerTotalQuestions && isTimerRunning) {
+      setIsTimerRunning(false);
+      setIsTimerCompleted(true);
+      const elapsed = Math.max(0, timerDuration - timerTimeLeft);
+
+      if (timerPersonalBest === null || elapsed < timerPersonalBest) {
+        setTimerPersonalBest(elapsed);
+        try {
+          localStorage.setItem('impara_speedrun_pb', elapsed.toString());
+        } catch {}
+      }
+
+      try {
+        confetti({
+          particleCount: 100,
+          spread: 80,
+          origin: { y: 0.6 },
+        });
+      } catch {}
+    }
+  }, [activeSolvedCount, timerTotalQuestions, isTimerRunning, timerTimeLeft, timerDuration, timerPersonalBest]);
+
+  // Countdown tick (always in seconds)
+  useEffect(() => {
+    if (!isTimerRunning || !isSpeedRunActive) return;
+    const interval = setInterval(() => {
+      setTimerTimeLeft((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isTimerRunning, isSpeedRunActive]);
+
+  // Announce "time's up" in the target language when countdown hits 0
+  useEffect(() => {
+    if (isTimerRunning && timerTimeLeft === 0 && !timeUpSpokenRef.current) {
+      timeUpSpokenRef.current = true;
+      setIsTimerRunning(false);
+      setIsTimerTimeUp(true);
+      const effectiveTargetLang = currentStory?._meta?.targetLang || targetLang;
+      const targetPhrase = getT(effectiveTargetLang).timeUpPhrase;
+      speakText(targetPhrase);
+    }
+  }, [isTimerRunning, timerTimeLeft, currentStory, targetLang]);
+
+  const handleStartTimer = () => {
+    if (timerTotalQuestions > 0 && activeSolvedCount === timerTotalQuestions) {
+      handleResetCurrentPractice();
+    }
+    timeUpSpokenRef.current = false;
+    setTimerTimeLeft((prev) => (prev <= 0 ? timerDuration : prev));
+    setIsTimerTimeUp(false);
+    setIsTimerCompleted(false);
+    setIsTimerRunning(true);
+    setIsTimerLocked(true); // Automatically lock timer so user sees time left when scrolling
+  };
+
+  const handlePauseTimer = () => {
+    setIsTimerRunning(false);
+  };
+
+  const handleResetTimer = () => {
+    timeUpSpokenRef.current = false;
+    setIsTimerRunning(false);
+    setIsTimerTimeUp(false);
+    setIsTimerCompleted(false);
+    setTimerTimeLeft(timerDuration);
+    setTimerStreak(0);
+    handleResetCurrentPractice();
+  };
+
+  const handleSelectTimerDuration = (seconds: number) => {
+    timeUpSpokenRef.current = false;
+    setTimerDuration(seconds);
+    setTimerTimeLeft(seconds);
+    setIsTimerRunning(false);
+    setIsTimerTimeUp(false);
+    setIsTimerCompleted(false);
+  };
+
+  const handleToggleSpeedRun = () => {
+    setIsSpeedRunActive((prev) => {
+      const next = !prev;
+      if (!next) {
+        setIsTimerRunning(false);
+      } else {
+        setIsTimerLocked(true);
+      }
+      return next;
+    });
   };
 
   // Repeat single sentence
@@ -3703,6 +3824,36 @@ export default function App() {
           </div>
         </header>
 
+        {/* Pinned / Locked Speed Run Countdown Bar (remains visible when scrolling) */}
+        {currentStory && practiceMode !== 'off' && isSpeedRunActive && isTimerLocked && (
+          <div className="shrink-0 z-20 bg-amber-50/95 backdrop-blur-sm border-b border-amber-300 shadow-xs">
+            <SpeedRunTimer
+              isActive={isSpeedRunActive}
+              onToggleActive={handleToggleSpeedRun}
+              totalQuestions={timerTotalQuestions}
+              baseLang={baseLang}
+              targetLang={currentStory?._meta?.targetLang || targetLang}
+              onShareStory={() => setIsShareModalOpen(true)}
+              onSpeak={(txt) => speakText(txt)}
+              isLocked={isTimerLocked}
+              onToggleLock={() => setIsTimerLocked((prev) => !prev)}
+              selectedDuration={timerDuration}
+              onSelectDuration={handleSelectTimerDuration}
+              timeLeft={timerTimeLeft}
+              isRunning={isTimerRunning}
+              isTimeUp={isTimerTimeUp}
+              isCompleted={isTimerCompleted}
+              streak={timerStreak}
+              personalBest={timerPersonalBest}
+              onStart={handleStartTimer}
+              onPause={handlePauseTimer}
+              onReset={handleResetTimer}
+              onDismissCompleted={() => setIsTimerCompleted(false)}
+              isPinnedDock={true}
+            />
+          </div>
+        )}
+
         {/* Story Sentences Area */}
         <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-3 sm:px-8 py-3 sm:py-6 max-w-4xl mx-auto w-full">
           {!currentStory ? (
@@ -3915,16 +4066,31 @@ export default function App() {
                     <span>{t.tips}</span>
                   </button>
 
-                  {/* Speed Run Timer Challenge (Active during practice modes) */}
-                  {practiceMode !== 'off' && (
+                  {/* Speed Run Timer Challenge (Trigger or Unlocked inline bar during practice modes) */}
+                  {practiceMode !== 'off' && (!isSpeedRunActive || !isTimerLocked) && (
                     <SpeedRunTimer
                       isActive={isSpeedRunActive}
-                      onToggleActive={() => setIsSpeedRunActive((prev) => !prev)}
-                      solvedCount={activeSolvedCount}
-                      totalQuestions={currentStory.sentences.length}
+                      onToggleActive={handleToggleSpeedRun}
+                      totalQuestions={timerTotalQuestions}
                       baseLang={baseLang}
-                      onResetPractice={handleResetCurrentPractice}
+                      targetLang={currentStory?._meta?.targetLang || targetLang}
                       onShareStory={() => setIsShareModalOpen(true)}
+                      onSpeak={(txt) => speakText(txt)}
+                      isLocked={isTimerLocked}
+                      onToggleLock={() => setIsTimerLocked((prev) => !prev)}
+                      selectedDuration={timerDuration}
+                      onSelectDuration={handleSelectTimerDuration}
+                      timeLeft={timerTimeLeft}
+                      isRunning={isTimerRunning}
+                      isTimeUp={isTimerTimeUp}
+                      isCompleted={isTimerCompleted}
+                      streak={timerStreak}
+                      personalBest={timerPersonalBest}
+                      onStart={handleStartTimer}
+                      onPause={handlePauseTimer}
+                      onReset={handleResetTimer}
+                      onDismissCompleted={() => setIsTimerCompleted(false)}
+                      isPinnedDock={false}
                     />
                   )}
                 </div>

@@ -136,6 +136,10 @@ export interface TranslationDictionary {
   resetSpeedRun: string;
   exitSpeedRun: string;
   enableSpeedRun: string;
+  timerMinutesLabel: (minutes: number) => string;
+  timeUpPhrase: string;
+  lockTimerTitle: string;
+  unlockTimerTitle: string;
 
   // Pronunciation Score Badge
   pronunciation: string;
@@ -939,6 +943,10 @@ export const ENGLISH_TRANSLATIONS: TranslationDictionary = {
   resetSpeedRun: 'Reset Speed Run',
   exitSpeedRun: 'Exit Speed Run Mode',
   enableSpeedRun: 'Enable Timed Speed Run Challenge',
+  timerMinutesLabel: (minutes) => (minutes === 1 ? '1 minute' : `${minutes} minutes`),
+  timeUpPhrase: "Time's up!",
+  lockTimerTitle: 'Lock timer at top while scrolling',
+  unlockTimerTitle: 'Unlock timer bar',
 
   // Pronunciation Score Badge
   pronunciation: 'Pronunciation',

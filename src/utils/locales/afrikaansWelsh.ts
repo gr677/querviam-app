@@ -135,6 +135,10 @@ export const AFRIKAANS_WELSH_LOCALES: Record<string, TranslationDictionary> = {
     resetSpeedRun: 'Stel Spoedlopie Terug',
     exitSpeedRun: 'Verlaat Spoedlopie-modus',
     enableSpeedRun: 'Aktiveer Tyd-spoedlopie-uitdaging',
+    timerMinutesLabel: (minutes) => (minutes === 1 ? '1 minuut' : `${minutes} minute`),
+    timeUpPhrase: 'Die tyd is om!',
+    lockTimerTitle: 'Sluit tydteller bo-aan terwyl jy blaai',
+    unlockTimerTitle: 'Ontsluit tydteller',
 
     // Pronunciation Score Badge
     pronunciation: 'Uitspraak',
@@ -931,6 +935,10 @@ export const AFRIKAANS_WELSH_LOCALES: Record<string, TranslationDictionary> = {
     resetSpeedRun: 'Ailosod Ras Gyflym',
     exitSpeedRun: 'Gadael Modd Ras Gyflym',
     enableSpeedRun: 'Galluogi Her Ras Gyflym Amseredig',
+    timerMinutesLabel: (minutes) => (minutes === 1 ? '1 munud' : `${minutes} munud`),
+    timeUpPhrase: 'Amser ar ben!',
+    lockTimerTitle: 'Cloi’r amserydd ar y brig wrth sgrolio',
+    unlockTimerTitle: 'Datgloi’r amserydd',
 
     // Pronunciation Score Badge
     pronunciation: 'Ynganiad',

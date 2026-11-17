@@ -120,6 +120,10 @@ export const EU_EAST_GREEK_LOCALES: Record<string, TranslationDictionary> = {
     resetSpeedRun: "Επαναφορά",
     exitSpeedRun: "Έξοδος από ταχύτητα",
     enableSpeedRun: "Ενεργοποίηση χρονομετρημένης πρόκλησης",
+    timerMinutesLabel: (minutes) => (minutes === 1 ? "1 λεπτό" : `${minutes} λεπτά`),
+    timeUpPhrase: "Ο χρόνος τελείωσε!",
+    lockTimerTitle: "Κλείδωμα χρονομέτρου στην κορυφή κατά την κύλιση",
+    unlockTimerTitle: "Ξεκλείδωμα χρονομέτρου",
     pronunciation: "Προφορά",
     excellent: "Εξαιρετικά!",
     goodEffort: "Καλή προσπάθεια",
@@ -796,6 +800,16 @@ export const EU_EAST_GREEK_LOCALES: Record<string, TranslationDictionary> = {
     resetSpeedRun: "Сбросить",
     exitSpeedRun: "Выйти из спринта",
     enableSpeedRun: "Включить испытание на время",
+    timerMinutesLabel: (minutes) => {
+      const m = minutes % 10;
+      const m100 = minutes % 100;
+      if (m === 1 && m100 !== 11) return `${minutes} минута`;
+      if (m >= 2 && m <= 4 && (m100 < 12 || m100 > 14)) return `${minutes} минуты`;
+      return `${minutes} минут`;
+    },
+    timeUpPhrase: "Время вышло!",
+    lockTimerTitle: "Закрепить таймер сверху при прокрутке",
+    unlockTimerTitle: "Открепить таймер",
     pronunciation: "Произношение",
     excellent: "Превосходно!",
     goodEffort: "Хорошая попытка",
@@ -1472,6 +1486,16 @@ export const EU_EAST_GREEK_LOCALES: Record<string, TranslationDictionary> = {
     resetSpeedRun: "Скинути",
     exitSpeedRun: "Вийти з режиму",
     enableSpeedRun: "Увімкнути випробування на час",
+    timerMinutesLabel: (minutes) => {
+      const m = minutes % 10;
+      const m100 = minutes % 100;
+      if (m === 1 && m100 !== 11) return `${minutes} хвилина`;
+      if (m >= 2 && m <= 4 && (m100 < 12 || m100 > 14)) return `${minutes} хвилини`;
+      return `${minutes} хвилин`;
+    },
+    timeUpPhrase: "Час вийшов!",
+    lockTimerTitle: "Закріпити таймер угорі під час прокрутки",
+    unlockTimerTitle: "Відкріпити таймер",
     pronunciation: "Вимова",
     excellent: "Відмінно!",
     goodEffort: "Гарна спроба",
