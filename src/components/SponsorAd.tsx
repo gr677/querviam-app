@@ -67,7 +67,23 @@ export const SponsorAd: React.FC<SponsorAdProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const adRef = useRef<HTMLModElement>(null);
 
-  const isEligible = AD_CONFIG.USE_REAL_ADS && placement !== 'sidebar' && hasSubstantialContent && !dismissed;
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isPreviewOrLocalHost =
+    !hostname ||
+    /^(localhost|127\.0\.0\.1)$/i.test(hostname) ||
+    hostname.endsWith('.run.app');
+  const configuredSlotId =
+    placement === 'mobile-compact'
+      ? AD_CONFIG.ADSENSE_SLOT_MOBILE
+      : AD_CONFIG.ADSENSE_SLOT_INCONTENT;
+  const shouldUseRealAdSense =
+    AD_CONFIG.USE_REAL_ADS &&
+    !isPreviewOrLocalHost &&
+    Boolean(AD_CONFIG.ADSENSE_CLIENT_ID) &&
+    Boolean(configuredSlotId);
+
+  const isEligible =
+    shouldUseRealAdSense && placement !== 'sidebar' && hasSubstantialContent && !dismissed;
 
   // Measure container width before mounting <ins class="adsbygoogle"> so hidden breakpoints (display: none) never mount 0-width slots
   useEffect(() => {
@@ -149,13 +165,8 @@ export const SponsorAd: React.FC<SponsorAdProps> = ({
   const adIndex = placement === 'in-content' ? 1 : 2;
   const sponsor: SponsorAdItem = SAMPLE_SPONSORS[adIndex % SAMPLE_SPONSORS.length];
 
-  // Real Google AdSense Block
-  if (AD_CONFIG.USE_REAL_ADS) {
-    const isMobile = placement === 'mobile-compact';
-    const slotId = isMobile
-      ? AD_CONFIG.ADSENSE_SLOT_MOBILE
-      : AD_CONFIG.ADSENSE_SLOT_INCONTENT;
-
+  // Real Google AdSense Block (only when an explicit display slot ID is configured on a live domain)
+  if (shouldUseRealAdSense) {
     return (
       <div
         ref={containerRef}
@@ -181,7 +192,7 @@ export const SponsorAd: React.FC<SponsorAdProps> = ({
               className="adsbygoogle"
               style={{ display: 'block', width: '100%' }}
               data-ad-client={AD_CONFIG.ADSENSE_CLIENT_ID}
-              {...(slotId ? { 'data-ad-slot': slotId } : {})}
+              data-ad-slot={configuredSlotId}
               data-ad-format="auto"
               data-full-width-responsive="true"
             />

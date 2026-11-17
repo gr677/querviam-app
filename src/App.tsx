@@ -381,6 +381,9 @@ export default function App() {
     if (typeof window === 'undefined') return;
 
     const restoreWindowScroll = () => {
+      if (window.visualViewport && window.visualViewport.scale > 1.02) {
+        return;
+      }
       if (window.scrollY !== 0) {
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       }
@@ -403,14 +406,12 @@ export default function App() {
 
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', restoreWindowScroll);
-      window.visualViewport.addEventListener('scroll', restoreWindowScroll);
     }
 
     return () => {
       window.removeEventListener('focusout', handleFocusOut);
       if (window.visualViewport) {
         window.visualViewport.removeEventListener('resize', restoreWindowScroll);
-        window.visualViewport.removeEventListener('scroll', restoreWindowScroll);
       }
     };
   }, []);
@@ -2723,9 +2724,9 @@ export default function App() {
     <div
       onTouchStart={handlePhoneTouchStart}
       onTouchEnd={handlePhoneTouchEnd}
-      className="flex flex-col lg:flex-row h-dvh-safe w-full overflow-hidden bg-[#f4f6f8] text-[#333]"
+      className="fixed inset-0 lg:static flex flex-col lg:flex-row lg:h-dvh-safe w-full overflow-hidden bg-[#f4f6f8] text-[#333]"
     >
-      <div className="flex-1 flex min-h-0 min-w-0 overflow-hidden relative lg:contents">
+      <div className="flex-1 flex items-stretch min-h-0 min-w-0 overflow-hidden relative lg:contents">
       {/* Mobile / Tablet Drawer Backdrop */}
       {isSidebarMobileOpen && (
         <div
@@ -2736,16 +2737,18 @@ export default function App() {
 
       {/* Sidebar Controls */}
       <aside
-        className={`absolute lg:static inset-y-0 left-0 z-40 w-72 sm:w-80 shadow-lg lg:shadow-none flex flex-col transition-colors duration-200 ease-in-out shrink-0 h-full overflow-hidden touch-pan-y lg:touch-auto ${
+        className={`absolute lg:static inset-y-0 left-0 z-40 w-72 sm:w-80 shadow-lg lg:shadow-none flex flex-col transition-colors duration-200 ease-in-out shrink-0 lg:self-stretch min-h-0 overflow-hidden ${
           sidebarTab === 'build'
             ? 'bg-[#fcf8f2] border-r border-[#e8dfcf] text-slate-800'
             : 'bg-[#edf8f1] border-r border-[#cbe6d4] text-slate-800'
         } ${
-          isSidebarMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          isSidebarMobileOpen
+            ? 'translate-x-0 pointer-events-auto'
+            : '-translate-x-full pointer-events-none lg:translate-x-0 lg:pointer-events-auto'
         }`}
       >
         {/* Querviam Brand & Create Story Header */}
-        <div className={`p-4 border-b flex flex-col gap-2.5 transition-colors duration-200 ${
+        <div className={`shrink-0 p-4 border-b flex flex-col gap-2.5 transition-colors duration-200 ${
           sidebarTab === 'build'
             ? 'bg-[#f7efe1]/80 border-[#e8dfcf]'
             : 'bg-[#e2f3e8]/80 border-[#cbe6d4]'
@@ -2862,7 +2865,7 @@ export default function App() {
         </div>
 
         {/* Scrollable Options */}
-        <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-4 text-xs pb-28 lg:pb-4">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain touch-pan-y scroll-touch p-4 space-y-4 text-xs pb-28 lg:pb-4">
           {sidebarTab === 'practice' ? (
             <>
               {/* Practice Mode */}
@@ -3666,7 +3669,7 @@ export default function App() {
       )}
 
       {/* Main Content Viewport */}
-      <main className="flex-1 flex flex-col min-w-0 min-h-0 bg-[#f8f9fa] overflow-hidden h-full">
+      <main className="flex-1 self-stretch flex flex-col min-w-0 min-h-0 bg-[#f8f9fa] overflow-hidden">
         {/* Sticky Header Bar */}
         <header className="px-4 py-3 bg-white border-b border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2 flex-1 min-w-[240px]">
@@ -3855,7 +3858,7 @@ export default function App() {
         )}
 
         {/* Story Sentences Area */}
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain touch-pan-y px-3 sm:px-8 py-3 sm:py-6 max-w-4xl mx-auto w-full">
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-y-contain touch-pan-y scroll-touch px-3 sm:px-8 py-3 sm:py-6 max-w-4xl mx-auto w-full">
           {!currentStory ? (
             <div className="text-center py-20 text-slate-400 space-y-3">
               <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-50 text-[#008450] flex items-center justify-center">

@@ -85,7 +85,7 @@ export const OwlTrack: React.FC<OwlTrackProps> = ({
 
   return (
     <div
-      className="hidden sm:flex w-12 bg-[#eef2f5] border-r border-[#dfe5eb] shadow-[inset_2px_0_4px_rgba(0,0,0,0.06)] flex-col items-center justify-between z-10 select-none transition-all shrink-0 h-full overflow-hidden"
+      className="hidden sm:flex w-12 bg-[#eef2f5] border-r border-[#dfe5eb] shadow-[inset_2px_0_4px_rgba(0,0,0,0.06)] flex-col items-center justify-between z-10 select-none transition-all shrink-0 self-stretch min-h-0 overflow-hidden"
       title={tooltipText}
     >
       {/* Top Header: Score & Reset button */}
@@ -112,7 +112,7 @@ export const OwlTrack: React.FC<OwlTrackProps> = ({
       {/* Owls stack ending flush at the bottom of the screen */}
       <div
         ref={scrollRef}
-        className="flex-1 w-full overflow-y-auto overscroll-contain flex flex-col justify-end items-center px-1 pb-2"
+        className="flex-1 min-h-0 w-full overflow-y-auto overscroll-y-contain touch-pan-y scroll-touch flex flex-col justify-end items-center px-1 pb-2"
       >
         <div className="mt-auto flex flex-col items-center gap-1.5 w-full">
           {orderedSlots.map((idx) => {
