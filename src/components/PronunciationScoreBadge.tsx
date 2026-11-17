@@ -16,7 +16,7 @@ export const PronunciationScoreBadge: React.FC<PronunciationScoreBadgeProps> = (
   onSpeakWord,
 }) => {
   const t = getT(baseLang);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const { score, recognizedText, wordScores } = result;
 
   const isExcellent = score >= 85;
