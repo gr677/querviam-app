@@ -3713,10 +3713,19 @@ Rules:
         try {
           const result = await vite.transformRequest('/@vite/client');
           if (!result) return next();
-          const patched = result.code.replace(
-            /transport\.connect\s*\(\s*createHMRHandler\s*\(\s*handleMessage\s*\)\s*\)\s*;?/,
-            '/* HMR WebSocket disabled */'
-          );
+          const patched = result.code
+            .replace(
+              /transport\.connect\s*\(\s*createHMRHandler\s*\(\s*handleMessage\s*\)\s*\)\s*;?/,
+              '/* HMR WebSocket disabled */'
+            )
+            .replace(
+              /else\s+throw\s+new\s+SendBeforeConnectError\("send was called before connect"\);?/g,
+              'else return;'
+            )
+            .replace(
+              /else\s+throw\s+new\s+SendBeforeConnectError\("invoke was called before connect"\);?/g,
+              'else return;'
+            );
           res.type('application/javascript').send(patched);
         } catch (err) {
           next(err);

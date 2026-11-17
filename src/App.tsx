@@ -2723,7 +2723,7 @@ export default function App() {
     <div
       onTouchStart={handlePhoneTouchStart}
       onTouchEnd={handlePhoneTouchEnd}
-      className="flex flex-col lg:flex-row h-[100dvh] w-full overflow-hidden bg-[#f4f6f8] text-[#333]"
+      className="flex flex-col lg:flex-row h-dvh-safe w-full overflow-hidden bg-[#f4f6f8] text-[#333]"
     >
       <div className="flex-1 flex min-h-0 min-w-0 overflow-hidden relative lg:contents">
       {/* Mobile / Tablet Drawer Backdrop */}
@@ -3855,7 +3855,7 @@ export default function App() {
         )}
 
         {/* Story Sentences Area */}
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-3 sm:px-8 py-3 sm:py-6 max-w-4xl mx-auto w-full">
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain touch-pan-y px-3 sm:px-8 py-3 sm:py-6 max-w-4xl mx-auto w-full">
           {!currentStory ? (
             <div className="text-center py-20 text-slate-400 space-y-3">
               <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-50 text-[#008450] flex items-center justify-center">
