@@ -156,8 +156,8 @@ export const SponsorAd: React.FC<SponsorAdProps> = ({
     };
   }, [isEligible, isVisibleWithWidth, placement]);
 
-  // AdSense Policy Safeguard: Never render ads on sidebar navigation or screens without publisher content
-  if (placement === 'sidebar' || !hasSubstantialContent || dismissed) {
+  // AdSense Policy Safeguard: Never render ads on sidebar navigation, without content, or mock sponsor cards when real AdSense is configured
+  if (placement === 'sidebar' || !hasSubstantialContent || dismissed || (AD_CONFIG.USE_REAL_ADS && !shouldUseRealAdSense)) {
     return null;
   }
 

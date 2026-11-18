@@ -33,7 +33,7 @@ export const AppFooter: React.FC<AppFooterProps> = ({
       )}
 
       {/* Footer Navigation Links (Crawlable Anchor Links for AdSense Bots & Users) */}
-      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-semibold text-slate-600">
+      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs font-semibold text-slate-600">
         <a
           href="/stories"
           className="hover:text-emerald-700 transition flex items-center gap-1"
@@ -41,6 +41,13 @@ export const AppFooter: React.FC<AppFooterProps> = ({
           <BookOpen className="w-3.5 h-3.5 text-slate-400" />
           <span>{t.footerLibrary}</span>
         </a>
+
+        <span className="text-slate-300">•</span>
+        <a href="/learn/italian" className="hover:text-emerald-700 transition">Italian</a>
+        <a href="/learn/spanish" className="hover:text-emerald-700 transition">Spanish</a>
+        <a href="/learn/french" className="hover:text-emerald-700 transition">French</a>
+        <a href="/learn/german" className="hover:text-emerald-700 transition">German</a>
+        <a href="/learn/nordic-slavic" className="hover:text-emerald-700 transition">Norwegian &amp; Czech</a>
 
         <span className="text-slate-300">•</span>
 

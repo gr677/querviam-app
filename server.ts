@@ -8,12 +8,14 @@ import crypto from 'crypto';
 import { GoogleGenAI, Type } from '@google/genai';
 import {
   renderStoriesCatalogHtml,
+  renderLanguageHubHtml,
   renderStoryArticleHtml,
   renderPrivacyPolicyHtml,
   renderTermsHtml,
   renderAboutHtml,
   renderContactHtml,
 } from './src/server/seoPages';
+import { LANGUAGE_HUBS, EDITORIAL_ARTICLES } from './src/server/editorialContent';
 
 dotenv.config();
 
@@ -3664,19 +3666,48 @@ Rules:
   });
 
   app.get('/sitemap.xml', (_req, res) => {
-    const pubPath = path.join(__dirname, 'public', 'sitemap.xml');
-    const distPath = path.join(__dirname, 'dist', 'sitemap.xml');
-    const sitemapPath = fs.existsSync(pubPath) ? pubPath : distPath;
-    if (fs.existsSync(sitemapPath)) {
-      res.type('application/xml').sendFile(sitemapPath);
-    } else {
-      res.status(404).end();
-    }
+    const baseUrl = 'https://querviam.com';
+    const staticUrls = [
+      { loc: `${baseUrl}/`, lastmod: '2026-11-18', changefreq: 'daily', priority: '1.0' },
+      { loc: `${baseUrl}/stories`, lastmod: '2026-11-18', changefreq: 'weekly', priority: '0.9' },
+      ...LANGUAGE_HUBS.map((hub) => ({
+        loc: `${baseUrl}/learn/${hub.slug}`,
+        lastmod: hub.updatedDate,
+        changefreq: 'weekly',
+        priority: '0.85',
+      })),
+      ...EDITORIAL_ARTICLES.map((article) => ({
+        loc: `${baseUrl}/read/${article.slug}`,
+        lastmod: article.updatedDate,
+        changefreq: 'monthly',
+        priority: '0.8',
+      })),
+      { loc: `${baseUrl}/about`, lastmod: '2026-11-12', changefreq: 'monthly', priority: '0.7' },
+      { loc: `${baseUrl}/privacy`, lastmod: '2026-11-12', changefreq: 'monthly', priority: '0.6' },
+      { loc: `${baseUrl}/terms`, lastmod: '2026-11-12', changefreq: 'monthly', priority: '0.6' },
+      { loc: `${baseUrl}/contact`, lastmod: '2026-11-12', changefreq: 'monthly', priority: '0.7' },
+    ];
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${staticUrls
+      .map(
+        (u) =>
+          `  <url>\n    <loc>${u.loc}</loc>\n    <lastmod>${u.lastmod}</lastmod>\n    <changefreq>${u.changefreq}</changefreq>\n    <priority>${u.priority}</priority>\n  </url>`
+      )
+      .join('\n')}\n</urlset>\n`;
+    res.type('application/xml').send(xml);
   });
 
   // Standalone Crawlable Publisher Pages for Google AdSense & Search Engines
   app.get('/stories', (_req, res) => {
     res.type('text/html').send(renderStoriesCatalogHtml(EXPORTS_DIR));
+  });
+
+  app.get('/learn/:hub', (req, res, next) => {
+    const html = renderLanguageHubHtml(req.params.hub);
+    if (html) {
+      res.type('text/html').send(html);
+    } else {
+      next();
+    }
   });
 
   app.get('/read/:slug', (req, res, next) => {

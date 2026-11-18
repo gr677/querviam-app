@@ -1266,9 +1266,15 @@ export default function App() {
     fetchStarter();
   }, []);
 
-  // First-time visitor: Automatically open Comic Guide Tour in build mode
+  // First-time visitor: Automatically open Comic Guide Tour in build mode for interactive human browsers (never obstruct bots/crawlers)
   useEffect(() => {
     try {
+      const ua = typeof navigator !== 'undefined' ? navigator.userAgent || '' : '';
+      const isAutomatedCrawler =
+        (typeof navigator !== 'undefined' && Boolean(navigator.webdriver)) ||
+        /bot|crawl|spider|slurp|mediapartners|adsbot|lighthouse|headless|google-inspectiontool/i.test(ua);
+      if (isAutomatedCrawler) return;
+
       const hasSeen = localStorage.getItem('querviam_comic_guide_v1');
       if (!hasSeen) {
         const timer = setTimeout(() => {
